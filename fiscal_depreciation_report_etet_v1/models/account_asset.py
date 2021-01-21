@@ -21,7 +21,7 @@ class AccountAsset(models.Model):
     invoice_date = fields.Char(string='fecha', compute='_invoice_date')
     invoice_partner = fields.Char(string='proveedor', compute='_invoice_partner')
     adition_asset_line_ids = fields.One2many('account.adition_asset', 'adition_asset_id', string='Adicion Activos Fijos')
-    location_asset_line_ids = fields.One2many('account.location_asset', 'location_asset_id', string='Ubicacion Activo')
+    location_asset_line_ids = fields.Many2one('account.location_asset', string='Ubicacion Activo')
     value_adition = fields.Integer(compute= '_adition_asset_value')
 
     @api.onchange('invoice_purchases')
@@ -32,7 +32,6 @@ class AccountAsset(models.Model):
     @api.onchange('responsable_asset')
     def _cargo(self):
         self.cargo = self.responsable_asset.job_title
-
 
     def compute_depreciation_fiscal_board(self):
         self.ensure_one()
