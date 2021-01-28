@@ -2,9 +2,9 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 {
-    'name': 'Inventory Report etet',
+    'name': 'Report Payroll',
     'version': '1.0',
-    'summary': 'Manage your stock and logistics activities',
+    'summary': 'Report Payroll',
     'description': "",
     'website': 'https://www.endtoendt.com',
     'depends': ['hr_payroll',],

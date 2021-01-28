@@ -15,6 +15,7 @@
         'hr_payroll',
         'hr_holidays',
         'analytic',
+        'hr_work_entry',
         ],
     'description': '''
 
@@ -32,7 +33,7 @@
         # 'views/hr_contract_view.xml',
         # 'views/report_contributionregistercust.xml',
         'views/account_analytic_account_view.xml',
-        # 'wizard/hr_payroll_contribution_register_report_views.xml',
+        'wizard/generate_hr_work_entry_view.xml',
         'data/data.xml',
         # 'report/report.xml',
         'security/ir.model.access.csv',

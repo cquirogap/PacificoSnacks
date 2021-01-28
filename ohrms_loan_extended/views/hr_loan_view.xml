@@ -16,6 +16,8 @@
 			</xpath>
 			<xpath expr="//button[@name='action_refuse']" position="after">
 				<button name="action_done" type="object" string="Terminado" states="approve" class="oe_highlight" />
+				<button name="action_draft" type="object" string="Pasar a borrador" states="cancel" class="oe_highlight" />
+				<button name="action_cancel" type="object" string="Cancelar" states="waiting_approval_1,approve,done" class="oe_highlight" />
 			</xpath>
 			<xpath expr="//button[@name='compute_installment']" position="replace">
 				<button name="compute_installment" type="object" string="Compute Installment" class="oe_highlight" attrs="{'invisible':[('state','not in',('draft',))]}"/>

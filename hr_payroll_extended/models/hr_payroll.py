@@ -150,9 +150,16 @@ class HrPayslip(models.Model):
         contract = self.contract_id
         if contract.resource_calendar_id:
             paid_amount = self._get_contract_wage()
+            absence_rate_2D = self.env['hr.salary.rule'].search([("code", "=", 'P_AUSENCIAS_2D')], limit=1).amount_fix
+            absence_rate_90D = self.env['hr.salary.rule'].search([("code", "=", 'P_AUSENCIAS_90D')], limit=1).amount_fix
+            absence_rate_M91D = self.env['hr.salary.rule'].search([("code", "=", 'P_AUSENCIAS_M91D')], limit=1).amount_fix
             unpaid_work_entry_types = self.struct_id.unpaid_work_entry_type_ids.ids
-
             work_hours = contract._get_work_hours(self.date_from, self.date_to)
+            exceed_hours = contract._get_exceed_hours(self.date_from, self.date_to)
+            if exceed_hours:
+                if 6 in  exceed_hours:
+                    exceed_hours[11] = exceed_hours.pop(6)
+                    work_hours.update(exceed_hours)
             total_hours = sum(work_hours.values()) or 1
             work_hours_ordered = sorted(work_hours.items(), key=lambda x: x[1])
             biggest_work = work_hours_ordered[-1][0] if work_hours_ordered else 0
@@ -168,13 +175,23 @@ class HrPayslip(models.Model):
                     days += add_days_rounding
                 day_rounded = self._round_days(work_entry_type, days)
                 add_days_rounding += (days - day_rounded)
+                if work_entry_type_id == 6 or work_entry_type_id == 11 :
+                    if day_rounded >= 3 and day_rounded < 4:
+                            r_amount = (((paid_amount / 30) * absence_rate_2D) / 100) * day_rounded
+                    elif day_rounded >= 4 and day_rounded <= 90:
+                            r_amount = (((paid_amount / 30) * absence_rate_90D) / 100) * day_rounded
+                    elif day_rounded >= 91:
+                            r_amount = (((paid_amount / 30) * absence_rate_M91D) / 100) * day_rounded
+                else:
+                    r_amount = day_rounded * (paid_amount / 30) if is_paid else 0
                 attendance_line = {
                     'sequence': work_entry_type.sequence,
                     'work_entry_type_id': work_entry_type_id,
                     'name': work_entry_type.code,
                     'number_of_days': day_rounded,
                     'number_of_hours': hours,
-                    'amount': hours * paid_amount / total_hours if is_paid else 0,
+                   #'amount': hours * paid_amount / total_hours if is_paid else 0,
+                    'amount': r_amount
                 }
                 res.append(attendance_line)
             total_days = days_between(self.date_from, self.date_to)
@@ -186,7 +203,8 @@ class HrPayslip(models.Model):
                 'name': work_entry_type.code,
                 'number_of_days': total_days,
                 'number_of_hours': total_hours,
-                'amount': total_hours * paid_amount / total_hours or 0,
+                #'amount': total_hours * paid_amount / total_hours or 0,
+                'amount': total_days * (paid_amount / 30) or 0,
 
             }
             res.append(attendances_total)

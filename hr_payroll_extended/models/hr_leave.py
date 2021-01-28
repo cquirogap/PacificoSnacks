@@ -30,7 +30,6 @@ class HrLeave(models.Model):
         default='0.0'
         
     )
-    
 
     # @api.onchange('request_date_from_period', 'request_hour_from', 'request_hour_to',
     #               'request_date_from', 'request_date_to',

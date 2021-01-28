@@ -35,6 +35,8 @@ class HrLoan(models.Model):
     def action_done(self):
         self.write({'state': 'done'})
 
+    def action_draft(self):
+        return self.write({'state': 'draft'})
 
     @api.onchange('employee_id')
     def onchange_employee(self):
