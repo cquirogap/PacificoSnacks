@@ -13,8 +13,8 @@ class AccountlocationAsset(models.Model):
     _rec_name = 'codigo'
 #    location_asset_id = fields.Many2one('account.asset', string='Tipo de activo')
 
-    codigo = fields.Char(string='Codigo Ubiacion')
-    nombre = fields.Char(string='Ubicacion del equipo')
+    codigo = fields.Char(string='codigo')
+    nombre = fields.Char(string='nombre')
     pais = fields.Many2one('res.country', string='Pais')
     departamento = fields.Many2one('res.country.state', string='Departamento')
     ciudad = fields.Many2one('res.city', string='Ciudad')

@@ -18,25 +18,18 @@
                 <xpath expr="//field[@name='currency_id']" position="before">
                     <field name="valorizado"/>
                 </xpath>
+                <xpath expr="//field[@name='original_value']" position="before">
+                    <field name="old_asset"/>
+                    <field name="asset_depreciate_value_initial" attrs="{'invisible':[('old_asset', '==', False)]}" />
+                    <field name="purchase_amount_asset" attrs="{'invisible':[('old_asset', '==', False)]}"/>
+                </xpath>
                 <xpath expr="//field[@name='book_value']" position="after">
+
+
                     <field name="tax_residual_value"/>
                     <field name="non_depreciable_value"/>
                 </xpath>
-                <xpath expr="//page[@name='depreciation_board']" position="before">
-                   <page string="Adicion Activos" name="table_mov">
-                            <field name="adition_asset_line_ids">
-                                <tree editable="top" string="lineas">
 
-                                    <field name="nombre_adicion"/>
-                                    <field name="duracion_adicional"/>
-                                    <field name="valor_adicion"  widget="monetary"/>
-                                    <field name="date_adition"/>
-                                    <field name="evaluador"/>
-
-                                </tree>
-                            </field>
-                        </page>
-                </xpath>
                 <xpath expr="//page[@name='depreciation_board']" position="after">
                    <page string="Tabla de Depreciacion Fiscal" name="fiscal_depreciation_board">
                             <field name="fiscal_depreciation_move_ids">
