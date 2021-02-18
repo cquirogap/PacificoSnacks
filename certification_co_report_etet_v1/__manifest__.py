@@ -2,12 +2,12 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 {
-    'name': 'Reporte Depreciacion Fiscal',
+    'name': 'Certificaciones iva, retefuente e ica',
     'version': '1.0',
     'summary': 'summary',
-    'description': "reporte activos fijos",
+    'description': "Certificaciones iva, retefuente e ica",
     'website': 'https://www.endtoendt.com',
-    'depends': ['account', 'account_asset'],
+    'depends': ['account', 'l10n_co_reports'],
     'category': 'category',
     'author': 'Enrrique Aguiar',
     'sequence': 13,
@@ -15,13 +15,8 @@
         
     ],
     'data': [
-        'security/ir.model.access.csv',
-        'views/fiscal_depreciation_report_view.xml',
-        'views/account_asset_form_view.xml',
 
-
-
-
+        'report/certification_report_inherit.xml',
     ],
     'qweb': [
 
