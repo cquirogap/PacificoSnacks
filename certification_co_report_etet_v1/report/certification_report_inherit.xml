@@ -73,7 +73,7 @@
                                             <td><t t-esc="line['name']"/></td>
 
                                             <td class="text-right"><t t-esc="a"/></td>
-                                            <td class="text-right"><t t-esc="b"/></td>
+                                            <td class="text-right"><t t-esc="line['tax_base_amount']"/></td>
                                             <td class="text-right"><t t-esc="line['balance']"/></td>
                                         </tr>
                                     </tbody>
