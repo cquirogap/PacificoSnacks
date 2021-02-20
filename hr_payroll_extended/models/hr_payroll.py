@@ -246,7 +246,11 @@ class HrPayslip(models.Model):
                         amountb = amountb + loans[2]
                     if loans[1] == 'DESCUENTOS':
                         amountd = amountd + loans[2]
-            paid_amount_ant = paid_amount +  amountb - amountd
+                if not amountb == 0 and amountd == 0:
+                     paid_amount_ant = paid_amount +  amountb - amountd
+                else: paid_amount_ant = paid_amount
+            else:
+                paid_amount_ant = paid_amount
             unpaid_work_entry_types = self.struct_id.unpaid_work_entry_type_ids.ids
             work_hours = contract._get_work_hours(self.date_from, self.date_to)
             exceed_hours = contract._get_exceed_hours(self.date_from, self.date_to)
