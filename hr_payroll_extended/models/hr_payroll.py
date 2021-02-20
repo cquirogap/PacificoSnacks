@@ -12,6 +12,11 @@ from odoo.tools.safe_eval import safe_eval
 from odoo import _, api, fields, models, tools
 from odoo.exceptions import UserError, AccessError, ValidationError
 
+import base64
+from dateutil.relativedelta import relativedelta
+from odoo.addons.hr_payroll.models.browsable_object import BrowsableObject, InputLine, WorkedDays, Payslips
+from odoo.exceptions import UserError, ValidationError
+
 
 def days_between(start_date, end_date):
     #Add 1 day to end date to solve different last days of month 
@@ -36,7 +41,6 @@ class HrPayslip(models.Model):
         res = self._onchange_employee()
         inputs = self.get_inputs(self.contract_id, self.date_from, self.date_to)
         return True
-
 
     def get_inputs_hora_extra(self, contract_id, date_from, date_to):
         self._cr.execute(''' SELECT i.name, i.code, h.amount, i.id FROM hr_extras h
@@ -69,6 +73,22 @@ class HrPayslip(models.Model):
         loans_fijos_ids = self._cr.fetchall()
         return loans_fijos_ids
 
+    def get_inputs_loans_month_before(self, contract_id, date_from, date_to):
+        date_before = self.date_from - relativedelta(months=1)
+        date_before_from = date(date_before.year, date_before.month, 1)
+        date_before_to = date(date_from.year, date_from.month, 1) - relativedelta(days=1)
+
+        self._cr.execute(''' SELECT i.name, i.code, l.amount, i.id
+                                FROM hr_loan_line l
+                                INNER JOIN hr_loan h ON h.id=l.loan_id
+                                INNER JOIN hr_payslip_input_type i ON i.id=h.input_id
+                                WHERE h.contract_id=%s AND h.state='approve'
+                                AND l.date BETWEEN %s AND %s
+                                AND h.loan_fijo IS False
+                                ORDER BY i.code ''', (contract_id.id, date_before_from, date_before_to))
+        loans_ids = self._cr.fetchall()
+        return loans_ids
+
 
     @api.model
     def get_inputs(self, contracts, date_from, date_to):
@@ -84,16 +104,44 @@ class HrPayslip(models.Model):
                                 "amount": hora[2],
                                 "payslip_id": self.id,
                                 "input_type_id": hora[3],
+                                "code_input": hora[1],
+                                "name_input": hora[0],
                     })                    
             loans_ids = self.get_inputs_loans(contract, date_from, date_to)
             if loans_ids:
-                for hora in loans_ids:
-                    self.env['hr.payslip.input'].create({
-                                "sequence": 1,
-                                "amount": hora[2],
-                                "payslip_id": self.id,
-                                "input_type_id": hora[3],
-                    })                    
+                amountb = 0
+                inputb_type_id = 0
+                amountd = 0
+                inputd_type_id = 0
+                for loans in loans_ids:
+                    if loans[1] == 'BONIFICACION':
+                       amountb = amountb + loans[2]
+                       inputb_type_id = loans[3]
+                       nameb = loans[0]
+                       codeb = loans[1]
+                    if loans[1] == 'DESCUENTOS':
+                       amountd = amountd + loans[2]
+                       inputd_type_id = loans[3]
+                       named = loans[0]
+                       coded = loans[1]
+            if not amountb == 0:
+                self.env['hr.payslip.input'].create({
+                 "sequence": 1,
+                 "amount": amountb,
+                 "payslip_id": self.id,
+                 "input_type_id": inputb_type_id,
+                 "name_input": nameb,
+                 "code_input": codeb,
+                })
+            if not amountd == 0:
+                self.env['hr.payslip.input'].create({
+                    "sequence": 1,
+                    "amount": amountd,
+                    "payslip_id": self.id,
+                    "input_type_id": inputd_type_id,
+                    "name_input": named,
+                    "code_input": coded,
+                })
             loans_fijos_ids = self.get_inputs_loans_fijos(contract)
             if loans_fijos_ids:
                 for hora in loans_fijos_ids:
@@ -102,7 +150,40 @@ class HrPayslip(models.Model):
                                 "amount": hora[2],
                                 "payslip_id": self.id,
                                 "input_type_id": hora[3],
-                    })                    
+                                "code_input": hora[1],
+                                "name_input": hora[0],
+                    })
+            loans_month_before_ids = self.get_inputs_loans_month_before(contract, date_from, date_to)
+            if loans_month_before_ids:
+                amountb = 0
+                inputb_type_id = 0
+                amountd = 0
+                inputd_type_id = 0
+                for loans in loans_month_before_ids:
+                    if loans[1] == 'BONIFICACION':
+                       amountb = amountb + loans[2]
+                       inputb_type_id = loans[3]
+                    if loans[1] == 'DESCUENTOS':
+                       amountd = amountd + loans[2]
+                       inputd_type_id = loans[3]
+                if not amountb == 0:
+                    self.env['hr.payslip.input'].create({
+                        "sequence": 1,
+                        "amount": amountb,
+                        "payslip_id": self.id,
+                        "input_type_id": inputb_type_id,
+                        "code_input": 'BONIFICACION_ANT30',
+                        "name_input": 'Bonificación mes anterior',
+                    })
+                if not amountd == 0:
+                    self.env['hr.payslip.input'].create({
+                        "sequence": 1,
+                        "amount": amountd,
+                        "payslip_id": self.id,
+                        "input_type_id": inputd_type_id,
+                        "code_input": 'DESCUENTO_ANT30',
+                        "name_input": 'Descuento mes anterior',
+                    })
 
         return res
 
@@ -153,6 +234,19 @@ class HrPayslip(models.Model):
             absence_rate_2D = self.env['hr.salary.rule'].search([("code", "=", 'P_AUSENCIAS_2D')], limit=1).amount_fix
             absence_rate_90D = self.env['hr.salary.rule'].search([("code", "=", 'P_AUSENCIAS_90D')], limit=1).amount_fix
             absence_rate_M91D = self.env['hr.salary.rule'].search([("code", "=", 'P_AUSENCIAS_M91D')], limit=1).amount_fix
+            wage_min  = self.env['hr.salary.rule'].search([("code", "=", 'SMLMV')], limit=1).amount_fix
+            loans_month_before_ids = self.get_inputs_loans_month_before(contract, self.date_from, self.date_to)
+            if loans_month_before_ids:
+                amountb = 0
+                inputb_type_id = 0
+                amountd = 0
+                inputd_type_id = 0
+                for loans in loans_month_before_ids:
+                    if loans[1] == 'BONIFICACION':
+                        amountb = amountb + loans[2]
+                    if loans[1] == 'DESCUENTOS':
+                        amountd = amountd + loans[2]
+            paid_amount_ant = paid_amount +  amountb - amountd
             unpaid_work_entry_types = self.struct_id.unpaid_work_entry_type_ids.ids
             work_hours = contract._get_work_hours(self.date_from, self.date_to)
             exceed_hours = contract._get_exceed_hours(self.date_from, self.date_to)
@@ -178,14 +272,19 @@ class HrPayslip(models.Model):
                 # El ('work_entry_type_id', '=', 6) corresponde al tipo de entrada "Ausencias por Enfermedad", en caso de modificar el registro se debe cambiar el numero a evaluar
                 # El ('work_entry_type_id', '=', 10) corresponde al tipo de entrada "Total Ausencias por Enfermedad", en caso de modificar el registro se debe cambiar el numero a evaluar
                 if work_entry_type_id == 6 or work_entry_type_id == 10 :
+                    if (paid_amount_ant/30) >= (wage_min / 30):
+                        paid_amount_ant = (paid_amount_ant/30)
+                    else:
+                        paid_amount_ant = (wage_min / 30)
                     if day_rounded >= 3 and day_rounded < 4:
-                            r_amount = (((paid_amount / 30) * absence_rate_2D) / 100) * day_rounded
+                            r_amount = (((paid_amount_ant) * absence_rate_2D) / 100) * day_rounded
                     elif day_rounded >= 4 and day_rounded <= 90:
-                            r_amount = (((paid_amount / 30) * absence_rate_90D) / 100) * day_rounded
+                            r_amount = (((paid_amount_ant) * absence_rate_90D) / 100) * day_rounded
                     elif day_rounded >= 91:
-                            r_amount = (((paid_amount / 30) * absence_rate_M91D) / 100) * day_rounded
+                            r_amount = (((paid_amount_ant) * absence_rate_M91D) / 100) * day_rounded
                 else:
-                    r_amount = day_rounded * (paid_amount / 30) if is_paid else 0
+                    r_amount = day_rounded * (paid_amount_ant / 30) if is_paid else 0
+
                 attendance_line = {
                     'sequence': work_entry_type.sequence,
                     'work_entry_type_id': work_entry_type_id,
@@ -211,6 +310,66 @@ class HrPayslip(models.Model):
             }
             res.append(attendances_total)
         return res
+
+    def _get_payslip_lines(self):
+        def _sum_salary_rule_category(localdict, category, amount):
+            if category.parent_id:
+                localdict = _sum_salary_rule_category(localdict, category.parent_id, amount)
+            localdict['categories'].dict[category.code] = localdict['categories'].dict.get(category.code, 0) + amount
+            return localdict
+
+        self.ensure_one()
+        result = {}
+        rules_dict = {}
+        worked_days_dict = {line.code: line for line in self.worked_days_line_ids if line.code}
+        # Se modifico inputs_dict que tomaras otros campos de hr.payslip.input
+        inputs_dict = {line.code_input: line for line in self.input_line_ids if line.code_input}
+
+        employee = self.employee_id
+        contract = self.contract_id
+
+        localdict = {
+            **self._get_base_local_dict(),
+            **{
+                'categories': BrowsableObject(employee.id, {}, self.env),
+                'rules': BrowsableObject(employee.id, rules_dict, self.env),
+                'payslip': Payslips(employee.id, self, self.env),
+                'worked_days': WorkedDays(employee.id, worked_days_dict, self.env),
+                'inputs': InputLine(employee.id, inputs_dict, self.env),
+                'employee': employee,
+                'contract': contract
+            }
+        }
+        for rule in sorted(self.struct_id.rule_ids, key=lambda x: x.sequence):
+            localdict.update({
+                'result': None,
+                'result_qty': 1.0,
+                'result_rate': 100})
+            if rule._satisfy_condition(localdict):
+                amount, qty, rate = rule._compute_rule(localdict)
+                # check if there is already a rule computed with that code
+                previous_amount = rule.code in localdict and localdict[rule.code] or 0.0
+                # set/overwrite the amount computed for this rule in the localdict
+                tot_rule = amount * qty * rate / 100.0
+                localdict[rule.code] = tot_rule
+                rules_dict[rule.code] = rule
+                # sum the amount for its salary category
+                localdict = _sum_salary_rule_category(localdict, rule.category_id, tot_rule - previous_amount)
+                # create/overwrite the rule in the temporary results
+                result[rule.code] = {
+                    'sequence': rule.sequence,
+                    'code': rule.code,
+                    'name': rule.name,
+                    'note': rule.note,
+                    'salary_rule_id': rule.id,
+                    'contract_id': contract.id,
+                    'employee_id': employee.id,
+                    'amount': amount,
+                    'quantity': qty,
+                    'rate': rate,
+                    'slip_id': self.id,
+                }
+        return result.values()
 
 
     # @api.model
