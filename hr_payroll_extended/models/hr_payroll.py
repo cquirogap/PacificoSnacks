@@ -124,24 +124,24 @@ class HrPayslip(models.Model):
                        inputd_type_id = loans[3]
                        named = loans[0]
                        coded = loans[1]
-            if not amountb == 0:
-                self.env['hr.payslip.input'].create({
-                 "sequence": 1,
-                 "amount": amountb,
-                 "payslip_id": self.id,
-                 "input_type_id": inputb_type_id,
-                 "name_input": nameb,
-                 "code_input": codeb,
-                })
-            if not amountd == 0:
-                self.env['hr.payslip.input'].create({
-                    "sequence": 1,
-                    "amount": amountd,
-                    "payslip_id": self.id,
-                    "input_type_id": inputd_type_id,
-                    "name_input": named,
-                    "code_input": coded,
-                })
+                if not amountb == 0:
+                    self.env['hr.payslip.input'].create({
+                     "sequence": 1,
+                     "amount": amountb,
+                     "payslip_id": self.id,
+                     "input_type_id": inputb_type_id,
+                     "name_input": nameb,
+                     "code_input": codeb,
+                    })
+                if not amountd == 0:
+                    self.env['hr.payslip.input'].create({
+                        "sequence": 1,
+                        "amount": amountd,
+                        "payslip_id": self.id,
+                        "input_type_id": inputd_type_id,
+                        "name_input": named,
+                        "code_input": coded,
+                    })
             loans_fijos_ids = self.get_inputs_loans_fijos(contract)
             if loans_fijos_ids:
                 for hora in loans_fijos_ids:
