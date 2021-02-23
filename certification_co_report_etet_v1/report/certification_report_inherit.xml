@@ -68,11 +68,8 @@
                                     </thead>
                                     <tbody>
                                         <tr t-foreach="partner['lines']" t-as="line">
-                                            <t t-set="a" t-value="line['balance']"/>
-                                            <t t-set="b" t-value="line['tax_base_amount']"/>
                                             <td><t t-esc="line['name']"/></td>
-
-                                            <td class="text-right"><t t-esc="a"/></td>
+                                            <td class="text-right"><t t-esc="line['porcentaje']"/></td>
                                             <td class="text-right"><t t-esc="line['tax_base_amount']"/></td>
                                             <td class="text-right"><t t-esc="line['balance']"/></td>
                                         </tr>
@@ -97,7 +94,7 @@
                                     <tbody>
                                         <tr t-foreach="partner['lines']" t-as="line">
                                             <td ><t t-esc="line['name']"/></td>
-                                            <td class="text-right"><t t-esc="line['balance']"/></td>
+                                            <td class="text-right"><t t-esc="line['porcentaje']"/></td>
                                             <td class="text-right"><t t-esc="line['tax_base_amount']"/></td>
                                             <td class="text-right"><t t-esc="line['balance']"/></td>
                                         </tr>
