@@ -37,13 +37,13 @@
                                 <div class="col-12" style="font-size:30px">
                                     <p class="text-center">Certifica que:</p>
                                     <p>Esta empresa efectuo
-                                    <span t-if="report_name.endswith('fuente')"> retencion en la fuente</span>
-                                    <span t-if="report_name.endswith('ica')"> retencion de industria y comercio,</span>
+                                    <span t-if="report_name.endswith('fuente')"> retención en la fuente</span>
+                                    <span t-if="report_name.endswith('ica')"> retención de industria y comercio,</span>
                                     <span t-if="report_name.endswith('iva')"> retención de I.V.A.,</span>
                                     durante el periodo comprendido entre enero 01 de <span t-esc="options['declaration_date']" t-options="{&quot;widget&quot;: &quot;date&quot;, &quot;format&quot;: &quot; Y&quot;}"/> y diciembre 31 de <span t-esc="options['declaration_date']" t-options="{&quot;widget&quot;: &quot;date&quot;, &quot;format&quot;: &quot; Y&quot;}"/> a:
                                     </p>
                                     Nombre / Razón Social : <t t-esc="partner['partner_id'].display_name"/>
-                                    <p>NIT: <t t-esc="partner['partner_id'].vat"/>-<t t-esc="partner['partner_id'].l10n_co_verification_code"/></p>
+                                    <p>NIT: <t t-esc="partner['partner_id'].vat"/><t t-esc="partner['partner_id'].l10n_co_verification_code"/></p>
                                     <br></br>
                                     <p>Por los siguientes conceptos:</p>
                                     <br></br>
@@ -57,7 +57,7 @@
                                         <col span="1" style="width: 20%;"/>
                                         <col span="1" style="width: 20%;"/>
                                     </colgroup>
-                                    <thead>
+                                    <thead class="text-center">
                                         <tr>
                                             <th style="background-color:#1958A4; color:white" t-if="report_name.endswith('fuente')"><strong>Concepto de la retención</strong></th>
                                             <th style="background-color:#1958A4; color:white" t-if="report_name.endswith('fuente')"><strong>Porcentaje</strong></th>
@@ -82,7 +82,7 @@
                                         <col span="1" style="width: 20%;"/>
                                         <col span="1" style="width: 20%;"/>
                                     </colgroup>
-                                    <thead>
+                                    <thead class="text-center">
                                         <tr>
                                             <th style="background-color:#1958A4; color:white" t-if="report_name.endswith('fuente')"><strong>Concepto de la retención</strong></th>
                                             <th style="background-color:#1958A4; color:white" t-if="report_name.endswith('ica')"><strong>Bimestre</strong></th>
@@ -101,7 +101,7 @@
                                     </tbody>
                                 </table>
                                 <table class="table" style="font-size:20" t-if="report_name.endswith('iva')">
-                                    <thead>
+                                    <thead class="text-center">
                                         <tr>
                                             <th style="background-color:#1958A4; color:white"><strong>Bimestre</strong></th>
                                             <th style="background-color:#1958A4; color:white"><strong>Monto Total Operación</strong></th>
@@ -154,7 +154,7 @@
                             </div>-->
                             <div class="row" style="margin-top: 50px; font-size:30px" >
                                 <div class="col-12"  style="font-size:30px">
-                                    <p>Dicha suma fue consignada en la Administración de Impuestos de la ciudad de
+                                    <p class="text-justify">Dicha suma fue consignada en la Administración de Impuestos de la ciudad de
                                         <span t-if="report_name.endswith('ica')"> Candelaria</span>
                                         <span t-if="report_name.endswith('fuente') or report_name.endswith('iva')"> <t t-esc="env.company.city"/></span>, a través de los establecimientos Bancarios autorizados.</p>
                                     <p>Este documento no requiere para su validez firma autógrafa de acuerdo con el artículo 10 del decreto 836 de 1991</p>
