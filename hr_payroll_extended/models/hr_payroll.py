@@ -74,7 +74,7 @@ class HrPayslip(models.Model):
         return loans_fijos_ids
 
     def get_inputs_loans_month_before(self, contract_id, date_from, date_to):
-        date_before = self.date_from - relativedelta(months=1)
+        date_before = date_from - relativedelta(months=1)
         date_before_from = date(date_before.year, date_before.month, 1)
         date_before_to = date(date_from.year, date_from.month, 1) - relativedelta(days=1)
 
@@ -89,6 +89,22 @@ class HrPayslip(models.Model):
         loans_ids = self._cr.fetchall()
         return loans_ids
 
+    def get_inputs_loans_month_now(self, contract_id, date_from, date_to):
+        date_month_now_from = date(date_from.year, date_from.month, 1)
+        date_month_next = date_month_now_from + relativedelta(months=1)
+        date_month_now_to = date(date_month_next.year, date_month_next.month, 1) - relativedelta(days=1)
+
+        self._cr.execute(''' SELECT i.name, i.code, l.amount, i.id
+                                FROM hr_loan_line l
+                                INNER JOIN hr_loan h ON h.id=l.loan_id
+                                INNER JOIN hr_payslip_input_type i ON i.id=h.input_id
+                                WHERE h.contract_id=%s AND h.state='approve'
+                                AND l.date BETWEEN %s AND %s
+                                AND h.loan_fijo IS False
+                                ORDER BY i.code ''', (contract_id.id, date_month_now_from, date_month_now_to))
+        loans_ids = self._cr.fetchall()
+        return loans_ids
+
 
     @api.model
     def get_inputs(self, contracts, date_from, date_to):
@@ -98,15 +114,87 @@ class HrPayslip(models.Model):
         for contract in contracts:
             horas_extras = self.get_inputs_hora_extra(contract, date_from, date_to)
             if horas_extras:
+                amounth25 = 0
+                inputh25_type_id = 0
+                amounth35 = 0
+                inputh35_type_id = 0
+                amounth75 = 0
+                inputh75_type_id = 0
+                amounthf75 = 0
+                inputhf75_type_id = 0
+                amounth110 = 0
+                inputh110_type_id = 0
                 for hora in horas_extras:
+                    if hora[1] == 'EXTRADIURNA':
+                        amounth25 = amounth25 + hora[2]
+                        inputh25_type_id = hora[3]
+                        nameh25 = hora[0]
+                        codeh25 = hora[1]
+                    if hora[1] == 'RECARGONOCTURNO':
+                        amounth35 = amounth35 + hora[2]
+                        inputh35_type_id = hora[3]
+                        nameh35 = hora[0]
+                        codeh35 = hora[1]
+                    if hora[1] == 'EXTRANOCTURNA':
+                        amounth75 = amounth75 + hora[2]
+                        inputh75_type_id = hora[3]
+                        nameh75 = hora[0]
+                        codeh75 = hora[1]
+                    if hora[1] == 'RECARGODIURNOFESTIVO':
+                        amounthf75 = amounthf75 + hora[2]
+                        inputhf75_type_id = hora[3]
+                        namehf75 = hora[0]
+                        codehf75 = hora[1]
+                    if hora[1] == 'RECARGONOCTURNOFESTIVO':
+                        amounth110 = amounth110 + hora[2]
+                        inputh110_type_id = hora[3]
+                        nameh110 = hora[0]
+                        codeh110 = hora[1]
+                if not amounth25 == 0:
                     self.env['hr.payslip.input'].create({
-                                "sequence": 1,
-                                "amount": hora[2],
-                                "payslip_id": self.id,
-                                "input_type_id": hora[3],
-                                "code_input": hora[1],
-                                "name_input": hora[0],
-                    })                    
+                        "sequence": 1,
+                        "amount": amounth25,
+                        "payslip_id": self.id,
+                        "input_type_id": inputh25_type_id,
+                        "name_input": nameh25,
+                        "code_input": codeh25,
+                    })
+                if not amounth35 == 0:
+                    self.env['hr.payslip.input'].create({
+                        "sequence": 1,
+                        "amount": amounth35,
+                        "payslip_id": self.id,
+                        "input_type_id": inputh35_type_id,
+                        "name_input": nameh35,
+                        "code_input": codeh35,
+                    })
+                if not amounth75 == 0:
+                    self.env['hr.payslip.input'].create({
+                        "sequence": 1,
+                        "amount": amounth75,
+                        "payslip_id": self.id,
+                        "input_type_id": inputh75_type_id,
+                        "name_input": nameh75,
+                        "code_input": codeh75,
+                    })
+                if not amounthf75 == 0:
+                    self.env['hr.payslip.input'].create({
+                        "sequence": 1,
+                        "amount": amounthf75,
+                        "payslip_id": self.id,
+                        "input_type_id": inputhf75_type_id,
+                        "name_input": namehf75,
+                        "code_input": codehf75,
+                    })
+                if not amounth110 == 0:
+                    self.env['hr.payslip.input'].create({
+                        "sequence": 1,
+                        "amount": amounth110,
+                        "payslip_id": self.id,
+                        "input_type_id": inputh110_type_id,
+                        "name_input": nameh110,
+                        "code_input": codeh110,
+                    })
             loans_ids = self.get_inputs_loans(contract, date_from, date_to)
             if loans_ids:
                 amountb = 0
@@ -184,10 +272,41 @@ class HrPayslip(models.Model):
                         "code_input": 'DESCUENTO_ANT30',
                         "name_input": 'Descuento mes anterior',
                     })
+            loans_month_now_ids = self.get_inputs_loans_month_now(contract, date_from, date_to)
+            if loans_month_now_ids:
+                amountbn = 0
+                inputbn_type_id = 0
+                amountdn = 0
+                inputdn_type_id = 0
+                for loans in loans_month_now_ids:
+                    if loans[1] == 'BONIFICACION':
+                        amountbn = amountbn + loans[2]
+                        inputbn_type_id = loans[3]
+                    if loans[1] == 'DESCUENTOS':
+                        amountdn = amountdn + loans[2]
+                        inputdn_type_id = loans[3]
+                if not amountbn == 0:
+                    self.env['hr.payslip.input'].create({
+                        "sequence": 1,
+                        "amount": amountbn,
+                        "payslip_id": self.id,
+                        "input_type_id": inputbn_type_id,
+                        "code_input": 'BONIFICACION_NOW30',
+                        "name_input": 'Bonificación mes actual',
+                    })
+                """
+                if not amountdn == 0:
+                    self.env['hr.payslip.input'].create({
+                        "sequence": 1,
+                        "amount": amountdn,
+                        "payslip_id": self.id,
+                        "input_type_id": inputdn_type_id,
+                        "code_input": 'DESCUENTO_NOW30',
+                        "name_input": 'Descuento mes actual',
+                    })
+                """
 
         return res
-
-
 
     @api.onchange('employee_id', 'struct_id', 'contract_id', 'date_from', 'date_to')
     def _onchange_employee(self):
