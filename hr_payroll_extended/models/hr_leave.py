@@ -41,14 +41,14 @@ class HrLeave(models.Model):
                 self.days_vacations = contract.vacations_available
         else:
             self.days_vacations = 0
-
+    '''
     def write(self, values):
         # El 6 corresponde al tipo de ausencia de vacaciones, en caso de modificar el registro se debe cambiar el numero a evaluar
         if self.holiday_status_id.id == 6 and self.days_vacations < self.number_of_days:
             raise Warning('¡No es posible registrar la ausencia! '
                           'El empleado no tiene suficientes días de vacaciones ('+str(self.days_vacations)+')')
         return super(HrLeave, self).write(values)
-
+    '''
     # @api.onchange('request_date_from_period', 'request_hour_from', 'request_hour_to',
     #               'request_date_from', 'request_date_to',
     #               'employee_id')
