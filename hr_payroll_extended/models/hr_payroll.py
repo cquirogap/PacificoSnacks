@@ -395,7 +395,7 @@ class HrPayslip(models.Model):
                 # El ('work_entry_type_id', '=', 6) corresponde al tipo de entrada "Ausencias por Enfermedad", en caso de modificar el registro se debe cambiar el numero a evaluar
                 # El ('work_entry_type_id', '=', 10) corresponde al tipo de entrada "Total Ausencias por Enfermedad", en caso de modificar el registro se debe cambiar el numero a evaluar
                 if work_entry_type_id == 6 or work_entry_type_id == 10 :
-                    if day_rounded >= 3 and day_rounded < 4:
+                    if day_rounded >= 1 and day_rounded < 4:
                             r_amount = (((paid_amount_ant) * absence_rate_2D) / 100)
                             if r_amount >= wage_min:
                                r_amount = r_amount * day_rounded
