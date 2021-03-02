@@ -6,17 +6,15 @@
             <t t-call="web.basic_layout">
                 <xpath expr="//div[hasclass('page')]" position="replace">
 
-                    <div class="page">
-                    <!--<h2 t-field="o.name"/>-->
-
-                    <table style="border: 1px solid black; border-collapse: collapse; width:95%" add="small">
+                    <div class="page" style="margin-left: 5%; margin-right: 5%; margin-top: 9%">
+                    <div>
+                        <table style="width:100%;" add="small">
                         <tr>
-                            <td style="width:20%" ><img class="img-fluid" src="/web/image/2057/pacifico.jpg"/></td>
-                                <td style="font-size:15px; margin-top:-25px; width:35%">
+                            <td style="width:25%" ><img src="/hr_reports_etet_v1/static/src/imagenes/descarga.jpeg" class="text-center" style="font-size:12px; width:90%; padding-top: 40%; margin-left: 5%;" alt="Responsive image"/></td>
+                                <td style="margin-top:-25px; width:35%" add="small">
                                     <div><b><span t-field="o.company_id.name"/></b></div>
                                     <div>N.I.T<span t-field="o.company_id.vat"/></div>
                                     <div><span t-field="o.company_id.street"/></div>
-                                    <div><span t-field="o.company_id.street2" t-if="o.company_id.street2"/></div>
                                     <div>
                                         <span t-field="o.company_id.city"/>
                                         <span t-field="o.company_id.state_id"/>
@@ -24,10 +22,11 @@
                                     </div>
                                     <div><span t-field="o.company_id.country_id"/></div>
                                 </td>
-                            <td style="font-size:15px; margin-top:-15px" class="text-center">DOCUMENTO SOPORTE<p><span t-field="o.number"/></p></td>
+                            <td style="font-size:12px; margin-top:-15px" class="text-center">DOCUMENTO SOPORTE<p><span t-field="o.number"/></p></td>
                         </tr>
+                        <tr></tr>
                         <tr>
-                           <table style="width:95%"  add="small" name="employee-infos" >
+                           <table style="width:90%"  add="small" name="employee-infos" >
                                 <td>
                                     <table style="width:100%; margin-left:5px; font-size:12px">
                                         <tr style="height:150%;">
@@ -47,33 +46,31 @@
                                             <td colspan="3"><span t-field="o.contract_id.name"/></td>
                                         </tr>
                                         <tr>
-                                            <td><strong>Basic Salary</strong></td>
-                                            <td><span t-esc="o.line_ids.filtered(lambda line: line.code == 'BASIC').total"
-                                                  t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/></td>
+                                            <td><strong>Sueldo Basico</strong></td>
+                                            <td><span t-esc="o.contract_id.wage"/></td>
                                         </tr>
                                     </table>
                                 </td>
                                <td>
                                     <table style="width:100%; margin-left:5px; font-size:12px">
                                         <tr>
-                                            <td><strong>Fecha de Ingreso</strong></td>
-                                             <td><span t-field="o.employee_id.job_id"/></td>
+                                            <td><strong>Fecha de Ingreso </strong></td>
+                                             <td><span t-esc="o.contract_id.date_start"/></td>
                                         </tr>
                                         <tr>
-                                            <td><strong>Fecha de pago</strong></td>
+                                            <td><strong>Fecha de pago </strong></td>
                                             <td><span t-field="o.compute_date"/></td>
                                         </tr>
                                         <tr>
-                                            <td><strong>Area Funcional</strong></td>
+                                            <td><strong>Area Funcional </strong></td>
                                             <td><span t-field="o.struct_id"/></td>
                                         </tr>
                                         <tr>
-                                            <td>Centro de Costo</td>
-                                     <td>dato</td>
+                                            <td><strong>Centro de Costo </strong></td>
+                                            <td><span t-esc="o.contract_id.analytic_account_id.code"/> <span t-esc="o.contract_id.analytic_account_id.tag_id.name"/></td>
                                         </tr>
                                         <tr>
-
-                                            <td>Cargo</td>
+                                            <td><strong>Cargo </strong></td>
                                             <td><span t-field="o.employee_id.job_id"/></td>
                                         </tr>
                                     </table>
@@ -83,50 +80,9 @@
                             </table>
                         </tr>
                     </table>
-
- <!--                   <table name="employee-infos" class="table table-sm table-bordered">
-                        <tr>
-                            <td><strong>Name</strong></td>
-                            <td><span t-field="o.employee_id"/></td>
-                            <td><strong>Designation</strong></td>
-                            <td><span t-field="o.employee_id.job_id"/></td>
-                        </tr>
-                        <tr>
-                            <td><strong>Address</strong></td>
-                            <td colspan="3">
-                                <div t-field="o.employee_id.address_home_id"
-                                    t-options='{"widget": "contact", "fields": ["address", "name", "phone"], "no_marker": True, "phone_icons": True}'/>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><strong>Email</strong></td>
-                            <td><span t-field="o.employee_id.work_email"/></td>
-                            <td><strong>Identification No</strong></td>
-                            <td><span t-field="o.employee_id.identification_id"/></td>
-                        </tr>
-                        <tr>
-                            <td><strong>Reference</strong></td>
-                            <td><span t-field="o.number"/></td>
-                            <td><strong>Bank Account</strong></td>
-                            <td><span t-field="o.employee_id.bank_account_id"/></td>
-                        </tr>
-                        <tr>
-                            <td><strong>Date From</strong></td>
-                            <td><span t-field="o.date_from"/></td>
-                            <td><strong>Date To</strong></td>
-                            <td><span t-field="o.date_to"/></td>
-                        </tr>
-                        <tr>
-                            <td><strong>Computed On</strong></td>
-                            <td><span t-field="o.compute_date"/></td>
-                            <td><strong>Registration Number</strong></td>
-                            <td><span t-field="o.employee_id.registration_number"/></td>
-                        </tr>
-                    </table>-->
-
-
-
-                    <table style="width:100%; border:1px solid black" add="small">
+                    <br></br>
+                    </div>
+                    <table class="table table-bordered" add="small">
                         <thead>
                             <tr>
                                 <!--<th>Code</th>-->
@@ -149,26 +105,20 @@
                                 <td><span t-esc="worked_days.amount" digits="[42, 2]"
                                           t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/></td>
                             </tr>
-                            <!--<tr t-foreach="o.line_ids.filtered(lambda line: line.appears_on_payslip)" t-as="line">
-                                <td><span t-field="line.code"/></td>
-                                <td><span t-field="line.name"/></td>
-                                <td></td>
-                                <td></td>
-                                <td><span t-field="line.quantity"/></td>
-                                <td><span t-esc="line.total"
-                                          t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/></td>
-                            </tr>-->
+
                         </tbody>
+
+                    </table>
+                    <table>
                         <tr><td>
                             </td>
                             <td>
-                                C.C / NIT
-                                FIRMA Y SELLO DEL BENEFICIARIO
+
                             </td>
                         </tr>
                     </table>
-
-                    <p class="text-right"><strong>Authorized signature</strong></p>
+                    <p class="text-right">C.C / NIT
+                                <p>FIRMA Y SELLO DEL BENEFICIARIO</p></p>
                 </div>
                 </xpath>
             </t>
