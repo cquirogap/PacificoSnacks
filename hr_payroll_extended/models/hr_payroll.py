@@ -306,6 +306,22 @@ class HrPayslip(models.Model):
                     })
                 """
 
+            amount_rtf = 0
+            if contract.deductions_rt_id and contract.retention_method == 'M1':
+               for d in contract.deductions_rt_id:
+                   amount_rtf = amount_rtf + d.amount
+               self.env['hr.payslip.input'].create({
+                   "sequence": 1,
+                   "amount": amount_rtf,
+                   "payslip_id": self.id,
+                   "input_type_id": inputbn_type_id,
+                   "code_input": 'D_RTF_M1',
+                   "name_input": 'Deducciones RTF M1',
+               })
+
+
+
+
         return res
 
     @api.onchange('employee_id', 'struct_id', 'contract_id', 'date_from', 'date_to')
