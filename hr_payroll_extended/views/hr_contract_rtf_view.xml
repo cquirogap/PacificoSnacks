@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+	<record id="hr_contract_rtf_view_form" model="ir.ui.view">
+		<field name="name">hr.contract.rtf.view.form</field>
+		<field name="model">hr.contract</field>
+		<field name="inherit_id" ref="hr_contract.hr_contract_view_form"/>
+		<field name="arch" type="xml">
+			<xpath expr="//field[@name='advantages']" position="after">
+				<field name="retention_method"/>
+			</xpath>
+			<xpath expr="//group[@name='salary_and_advantages']" position="after">
+				<group name="deductions_rt_m1" string="Deducciones de retención en la fuente" attrs="{'invisible': [['retention_method','!=','M1']]}">
+					<field name="deductions_rt_id" nolabel="1">
+						<tree string="deductions_rt_tree" editable="top" >
+							<field name="concept" />
+							<field name="amount"/>
+						</tree>
+					</field>
+				</group>
+			</xpath>
+		</field>
+	</record>
+</odoo>

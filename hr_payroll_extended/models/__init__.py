@@ -10,3 +10,4 @@ from . import hr_work_entry
 from . import account_analytic_account
 from . import hr_contract
 from . import hr_payslip_input
+from . import hr_deductions_rt
