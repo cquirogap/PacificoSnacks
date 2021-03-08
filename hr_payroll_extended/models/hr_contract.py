@@ -34,7 +34,6 @@ class HrContract(models.Model):
     vacations_history = fields.Many2many('hr.leave' ,string="Historial", compute='get_history')
 
     retention_method = fields.Selection(string='Metodo de rétencion', selection=[('NA', 'No aplica'),('M1', 'Metodo 1')], default='NA', required=True )
-    deductions_rt_id = fields.Many2many('hr_deductions_rt', string='Deduciones')
 
     def get_accumulated_vacation(self):
         date_from = datetime.combine(self.date_start, datetime.min.time())
