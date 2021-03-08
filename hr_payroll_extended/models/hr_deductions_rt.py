@@ -6,13 +6,9 @@ class hr_deductions_rt (models.Model):
     _description = 'Deducciones de retención en la fuente metodo 1'
     _rec_name = 'concept'
 
-    concept = fields.Char('Concepto')
-    amount = fields.Integer(default=1, string="monto")
-
-    _sql_constraints = [
-        ('concept_id_uniq', 'unique(concept)', "Ya existe este concepto!"),
-    ]
-
+    date = fields.Date(string="Fecha", required='True', default=fields.Date.today())
+    concept = fields.Many2one('hr_deduction_concepts', string='Concepto')
+    amount = fields.Integer(default=1, string="Monto")
 
 
 
