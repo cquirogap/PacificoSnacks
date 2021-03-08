@@ -8,16 +8,6 @@
 			<xpath expr="//field[@name='advantages']" position="after">
 				<field name="retention_method"/>
 			</xpath>
-			<xpath expr="//group[@name='salary_and_advantages']" position="after">
-				<group name="deductions_rt_m1" string="Deducciones de retención en la fuente" attrs="{'invisible': [['retention_method','!=','M1']]}">
-					<field name="deductions_rt_id" nolabel="1">
-						<tree string="deductions_rt_tree" editable="top" >
-							<field name="concept" />
-							<field name="amount"/>
-						</tree>
-					</field>
-				</group>
-			</xpath>
 		</field>
 	</record>
 </odoo>
