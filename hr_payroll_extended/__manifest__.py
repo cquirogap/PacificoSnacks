@@ -31,6 +31,8 @@
         'views/hr_leave_view.xml',
         'views/hr_contract_vacation_view.xml',
         'views/hr_contract_rtf_view.xml',
+        'views/hr_withholding_tax_view.xml',
+        'views/hr_deduction_concepts_view.xml',
         'views/hr_deductions_rt_views.xml',
         # 'views/hr_payroll_structure_view.xml',
         # 'views/hr_contract_view.xml',

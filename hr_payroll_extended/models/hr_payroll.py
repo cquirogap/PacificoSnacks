@@ -131,6 +131,17 @@ class HrPayslip(models.Model):
         horas_extras = self._cr.fetchall()
         return horas_extras
 
+    def get_inputs_withholding_tax(self, contract_id, date_from, date_to):
+        date_month_now_from = date(date_from.year, date_from.month, 1)
+        date_month_next = date_month_now_from + relativedelta(months=1)
+        date_month_now_to = date(date_month_next.year, date_month_next.month, 1) - relativedelta(days=1)
+        withholding_tax_ids = self.env['hr.withholding.tax'].search([("contract_id", "=", contract_id.id),
+                                                                     ("deductions_rt_id.date", ">=", date_month_now_from),
+                                                                     ("deductions_rt_id.date", "<=", date_month_now_to),
+                                                                     ("state", "=", 'approved'),
+                                                                     ])
+        return withholding_tax_ids
+
     @api.model
     def get_inputs(self, contracts, date_from, date_to):
         res = []
@@ -442,19 +453,20 @@ class HrPayslip(models.Model):
                         "code_input": 'BONIFICACION_PYEARS',
                         "name_input": 'Bonificación Promedio',
                     })
-
-            amount_rtf = 0
-            if contract.deductions_rt_id and contract.retention_method == 'M1':
-               for d in contract.deductions_rt_id:
-                   amount_rtf = amount_rtf + d.amount
-               self.env['hr.payslip.input'].create({
-                   "sequence": 1,
-                   "amount": amount_rtf,
-                   "payslip_id": self.id,
-                   "input_type_id": inputbn_type_id,
-                   "code_input": 'D_RTF_M1',
-                   "name_input": 'Deducciones RTF M1',
-               })
+            if contract.retention_method == 'M1':
+                inputs_withholding_tax = self.get_inputs_withholding_tax(contract, date_from, date_to)
+                if inputs_withholding_tax:
+                   amount_rtf = 0
+                   for d in inputs_withholding_tax.deductions_rt_id:
+                       amount_rtf = amount_rtf + d.amount
+                   self.env['hr.payslip.input'].create({
+                       "sequence": 1,
+                       "amount": amount_rtf,
+                       "payslip_id": self.id,
+                       "input_type_id": inputs_withholding_tax.input_id.id,
+                       "code_input": inputs_withholding_tax.input_id.code,
+                       "name_input": inputs_withholding_tax.input_id.name,
+                   })
 
         return res
 
