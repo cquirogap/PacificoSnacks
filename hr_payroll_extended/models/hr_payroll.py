@@ -249,24 +249,12 @@ class HrPayslip(models.Model):
                 amounth110 = 0
                 inputh110_type_id = 0
                 for hora in horas_extras_12month_before:
-                    if hora[1] == 'EXTRADIURNA':
-                        counth25 = counth25 + 1
-                        amounth25 = amounth25 + hora[2]
-                        inputh25_type_id = hora[3]
-                        nameh25 = hora[0]
-                        codeh25 = hora[1]
                     if hora[1] == 'RECARGONOCTURNO':
                         counth35 = counth35 + 1
                         amounth35 = amounth35 + hora[2]
                         inputh35_type_id = hora[3]
                         nameh35 = hora[0]
                         codeh35 = hora[1]
-                    if hora[1] == 'EXTRANOCTURNA':
-                        counth75 = counth75 + 1
-                        amounth75 = amounth75 + hora[2]
-                        inputh75_type_id = hora[3]
-                        nameh75 = hora[0]
-                        codeh75 = hora[1]
                     if hora[1] == 'RECARGODIURNOFESTIVO':
                         counthf75 = counthf75 + 1
                         amounthf75 = amounthf75 + hora[2]
@@ -279,10 +267,24 @@ class HrPayslip(models.Model):
                         inputh110_type_id = hora[3]
                         nameh110 = hora[0]
                         codeh110 = hora[1]
+                    '''
+                    if hora[1] == 'EXTRADIURNA':
+                        counth25 = counth25 + 1
+                        amounth25 = amounth25 + hora[2]
+                        inputh25_type_id = hora[3]
+                        nameh25 = hora[0]
+                        codeh25 = hora[1]
+                    if hora[1] == 'EXTRANOCTURNA':
+                        counth75 = counth75 + 1
+                        amounth75 = amounth75 + hora[2]
+                        inputh75_type_id = hora[3]
+                        nameh75 = hora[0]
+                        codeh75 = hora[1]
+                    '''
                 if not amounth25 == 0:
                     self.env['hr.payslip.input'].create({
                         "sequence": 1,
-                        "amount": amounth25 /counth25,
+                        "amount": amounth25/counth25,
                         "payslip_id": self.id,
                         "input_type_id": inputh25_type_id,
                         "code_input": 'EXTRADIURNA_PYEARS',
