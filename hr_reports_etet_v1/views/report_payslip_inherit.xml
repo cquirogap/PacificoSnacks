@@ -6,7 +6,7 @@
             <t t-call="web.basic_layout">
                 <xpath expr="//div[hasclass('page')]" position="replace">
 
-                    <div class="page" style="margin-left: 5%; margin-right: 5%; margin-top: 9%">
+                    <div class="page" style="margin-left: 5%; margin-right: 5%">
                     <div>
                         <table style="width:100%;" add="small">
                         <tr>
@@ -91,245 +91,329 @@
                             </tr>
                         </thead>
                         <tbody style="height:10%; font-size:9px">
-
-                            <tr t-foreach="o.line_ids.filtered(lambda x: x.code == 'SALARIO')" t-as="line_ids">
-                                <!--<td><span t-field="worked_days.code"/></td>-->
+                            <t t-set="salario_nombre" t-value=""></t>
+                            <t t-set="salario_valor" t-value="0"></t>
+                            <t t-foreach="o.line_ids.filtered(lambda x: x.code == 'SALARIO')" t-as="line_ids">
+                                <t t-set="salario_nombre" t-value="line_ids.name"/>
+                                <t t-set="salario_valor" t-value="line_ids.total"/>
+                            </t>
+                            <t t-if="salario_valor > 0">
+                                <tr>
                                 <td>
-                                    <span t-field="line_ids.name"/>
+                                    <span t-esc="salario_nombre"/>
                                 </td>
-                                <!--<td><span t-field="worked_days.number_of_hours"/></td>-->
 
                                 <td class="text-right" t-foreach="o.worked_days_line_ids.filtered(lambda x: x.work_entry_type_id.name == 'Total Días')" t-as="worked_days">
                                 <span t-field="worked_days.number_of_days"/>
                                 </td>
 
-                                <td class="text-right"><span t-field="line_ids.total" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/></td>
-                                <td class="text-right"> </td>
-                                <!--<td class="text-right"><span t-esc="worked_days.amount" digits="[42, 2]"
-                                          t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/></td>-->
-
-                            </tr>
-                            <tr t-foreach="o.line_ids.filtered(lambda x: x.code == 'BONIFICACION')" t-as="line_ids">
-                                <!--<td><span t-field="worked_days.code"/></td>-->
-                                <td>
-                                    <span t-field="line_ids.name"/>
+                                <td class="text-right"><span t-esc="salario_valor" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
                                 </td>
-                                <!--<td><span t-field="worked_days.number_of_hours"/></td>-->
+                                <td class="text-right"> </td>
+                            </tr>
+                            </t>
+                            <t t-else="">
+                            </t>
+
+                            <t t-set="bonificacion_nombre" t-value=""></t>
+                            <t t-set="bonificacion_valor" t-value="0"></t>
+                            <t t-foreach="o.line_ids.filtered(lambda x: x.code == 'BONIFICACION')" t-as="line_ids">
+                                <t t-set="bonificacion_nombre" t-value="line_ids.name"/>
+                                <t t-set="bonificacion_valor" t-value="line_ids.total"/>
+                            </t>
+                            <t t-if="bonificacion_valor > 0">
+                                <tr>
+                                <td>
+                                    <span t-esc="bonificacion_nombre"/>
+                                </td>
 
                                 <td class="text-right" t-foreach="o.worked_days_line_ids.filtered(lambda x: x.work_entry_type_id.name == 'Total Días')" t-as="worked_days">
                                 <span t-field="worked_days.number_of_days"/>
                                 </td>
 
-                                <td class="text-right"><span t-field="line_ids.total" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/></td>
-                                <td class="text-right"> </td>
-                                <!--<td class="text-right"><span t-esc="worked_days.amount" digits="[42, 2]"
-                                          t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/></td>-->
-
-                            </tr>
-                            <tr t-foreach="o.line_ids.filtered(lambda x: x.code == 'SUBSTRAN')" t-as="line_ids">
-                                <!--<td><span t-field="worked_days.code"/></td>-->
-                                <td>
-                                    <span t-field="line_ids.name"/>
+                                <td class="text-right"><span t-esc="bonificacion_valor" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
                                 </td>
-                                <!--<td><span t-field="worked_days.number_of_hours"/></td>-->
+                                <td class="text-right"> </td>
+                            </tr>
+                            </t>
+                            <t t-else="">
+                            </t>
+
+                            <t t-set="substran_nombre" t-value=""></t>
+                            <t t-set="substran_valor" t-value="0"></t>
+                            <t t-foreach="o.line_ids.filtered(lambda x: x.code == 'SUBSTRAN')" t-as="line_ids">
+                                <t t-set="substran_nombre" t-value="line_ids.name"/>
+                                <t t-set="substran_valor" t-value="line_ids.total"/>
+                            </t>
+                            <t t-if="substran_valor > 0">
+                                <tr>
+                                <td>
+                                    <span t-esc="substran_nombre"/>
+                                </td>
 
                                 <td class="text-right" t-foreach="o.worked_days_line_ids.filtered(lambda x: x.work_entry_type_id.name == 'Total Días')" t-as="worked_days">
                                 <span t-field="worked_days.number_of_days"/>
                                 </td>
 
-                                <td class="text-right"><span t-field="line_ids.total" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/></td>
-                                <td class="text-right"> </td>
-                                <!--<td class="text-right"><span t-esc="worked_days.amount" digits="[42, 2]"
-                                          t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/></td>-->
-
-                            </tr>
-                            <tr t-foreach="o.line_ids.filtered(lambda x: x.code == 'BENEFICIOELALIMENTACION')" t-as="line_ids">
-                                <!--<td><span t-field="worked_days.code"/></td>-->
-                                <td>
-                                    <span t-field="line_ids.name"/>
+                                <td class="text-right"><span t-esc="substran_valor" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
                                 </td>
-                                <!--<td><span t-field="worked_days.number_of_hours"/></td>-->
+                                <td class="text-right"> </td>
+                            </tr>
+                            </t>
+                            <t t-else="">
+                            </t>
+
+                            <t t-set="beneficioalim_nombre" t-value=""></t>
+                            <t t-set="beneficioalim_valor" t-value="0"></t>
+                            <t t-foreach="o.line_ids.filtered(lambda x: x.code == 'BENEFICIOELALIMENTACION')" t-as="line_ids">
+                                <t t-set="beneficioalim_nombre" t-value="line_ids.name"/>
+                                <t t-set="beneficioalim_valor" t-value="line_ids.total"/>
+                            </t>
+                            <t t-if="beneficioalim_valor > 0">
+                                <tr>
+                                <td>
+                                    <span t-esc="beneficioalim_nombre"/>
+                                </td>
 
                                 <td class="text-right" t-foreach="o.worked_days_line_ids.filtered(lambda x: x.work_entry_type_id.name == 'Total Días')" t-as="worked_days">
                                 <span t-field="worked_days.number_of_days"/>
                                 </td>
 
-                                <td class="text-right"><span t-field="line_ids.total" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/></td>
-                                <td class="text-right"> </td>
-                                <!--<td class="text-right"><span t-esc="worked_days.amount" digits="[42, 2]"
-                                          t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/></td>-->
-
-                            </tr>
-                            <tr t-foreach="o.line_ids.filtered(lambda x: x.code == 'RECARGONOCTURNO')" t-as="line_ids">
-                                <!--<td><span t-field="worked_days.code"/></td>-->
-                                <td>
-                                    <span t-field="line_ids.name"/>
+                                <td class="text-right"><span t-esc="beneficioalim_valor" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
                                 </td>
-                                <!--<td><span t-field="worked_days.number_of_hours"/></td>-->
+                                <td class="text-right"> </td>
+                            </tr>
+                            </t>
+                            <t t-else="">
+                            </t>
+
+                            <t t-set="recargonocturno_nombre" t-value=""></t>
+                            <t t-set="recargonocturno_valor" t-value="0"></t>
+                            <t t-set="recargonocturno_quantity" t-value="0"></t>
+                            <t t-foreach="o.line_ids.filtered(lambda x: x.code == 'RECARGONOCTURNO')" t-as="line_ids">
+                                <t t-set="recargonocturno_nombre" t-value="line_ids.name"/>
+                                <t t-set="recargonocturno_valor" t-value="line_ids.total"/>
+                                <t t-set="recargonocturno_quantity" t-value="line_ids.quantity"/>
+                            </t>
+                            <t t-if="recargonocturno_valor > 0">
+                                <tr>
+                                <td>
+                                    <span t-esc="recargonocturno_nombre"/>
+                                </td>
 
                                 <td class="text-right">
-                                <span t-field="line_ids.quantity"/>
+                                <span t-esc="recargonocturno_quantity"/>
                                 </td>
 
-                                <td class="text-right"><span t-field="line_ids.total" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/></td>
+                                <td class="text-right"><span t-esc="recargonocturno_valor" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
+                                </td>
                                 <td class="text-right"> </td>
-                                <!--<td class="text-right"><span t-esc="worked_days.amount" digits="[42, 2]"
-                                          t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/></td>-->
-
                             </tr>
-                            <tr t-foreach="o.line_ids.filtered(lambda x: x.code == 'EXTRADIURNA')" t-as="line_ids">
-                                <!--<td><span t-field="worked_days.code"/></td>-->
+                            </t>
+                            <t t-else="">
+                            </t>
+
+                            <t t-set="recargonocturnofestivo_nombre" t-value=""></t>
+                            <t t-set="recargonocturnofestivo_valor" t-value="0"></t>
+                            <t t-set="recargonocturnofestivo_quantity" t-value="0"></t>
+                            <t t-foreach="o.line_ids.filtered(lambda x: x.code == 'RECARGONOCTURNOFESTIVO')" t-as="line_ids">
+                                <t t-set="recargonocturnofestivo_nombre" t-value="line_ids.name"/>
+                                <t t-set="recargonocturnofestivo_valor" t-value="line_ids.total"/>
+                                <t t-set="recargonocturnofestivo_quantity" t-value="line_ids.quantity"/>
+                            </t>
+                            <t t-if="recargonocturnofestivo_valor > 0">
+                                <tr>
                                 <td>
-                                    <span t-field="line_ids.name"/>
+                                    <span t-esc="recargonocturnofestivo_nombre"/>
                                 </td>
-                                <!--<td><span t-field="worked_days.number_of_hours"/></td>-->
 
                                 <td class="text-right">
-                                <span t-field="line_ids.quantity"/>
+                                <span t-esc="recargonocturnofestivo_quantity"/>
                                 </td>
 
-                                <td class="text-right"><span t-field="line_ids.total" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/></td>
+                                <td class="text-right"><span t-esc="recargonocturnofestivo_valor" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
+                                </td>
                                 <td class="text-right"> </td>
-                                <!--<td class="text-right"><span t-esc="worked_days.amount" digits="[42, 2]"
-                                          t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/></td>-->
-
                             </tr>
-                            <tr t-foreach="o.line_ids.filtered(lambda x: x.code == 'RECARGONOCTURNOFESTIVO')" t-as="line_ids">
-                                <!--<td><span t-field="worked_days.code"/></td>-->
+                            </t>
+                            <t t-else="">
+                            </t>
+                            
+                            <t t-set="recargodiurnofestivo_nombre" t-value=""></t>
+                            <t t-set="recargodiurnofestivo_valor" t-value="0"></t>
+                            <t t-set="recargodiurnofestivo_quantity" t-value="0"></t>
+                            <t t-foreach="o.line_ids.filtered(lambda x: x.code == 'RECARGODIURNOFESTIVO')" t-as="line_ids">
+                                <t t-set="recargodiurnofestivo_nombre" t-value="line_ids.name"/>
+                                <t t-set="recargodiurnofestivo_valor" t-value="line_ids.total"/>
+                                <t t-set="recargodiurnofestivo_quantity" t-value="line_ids.quantity"/>
+                            </t>
+                            <t t-if="recargodiurnofestivo_valor > 0">
+                                <tr>
                                 <td>
-                                    <span t-field="line_ids.name"/>
+                                    <span t-esc="recargodiurnofestivo_nombre"/>
                                 </td>
-                                <!--<td><span t-field="worked_days.number_of_hours"/></td>-->
 
                                 <td class="text-right">
-                                <span t-field="line_ids.quantity"/>
+                                <span t-esc="recargodiurnofestivo_quantity"/>
                                 </td>
 
-                                <td class="text-right"><span t-field="line_ids.total" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/></td>
+                                <td class="text-right"><span t-esc="recargodiurnofestivo_valor" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
+                                </td>
                                 <td class="text-right"> </td>
-                                <!--<td class="text-right"><span t-esc="worked_days.amount" digits="[42, 2]"
-                                          t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/></td>-->
-
                             </tr>
-                            <tr t-foreach="o.line_ids.filtered(lambda x: x.code == 'RECARGODIURNOFESTIVO')" t-as="line_ids">
-                                <!--<td><span t-field="worked_days.code"/></td>-->
+                            </t>
+                            <t t-else="">
+                            </t>
+                            
+                            <t t-set="bonos_nombre" t-value=""></t>
+                            <t t-set="bonos_valor" t-value="0"></t>
+                            <t t-set="bonos_quantity" t-value="0"></t>
+                            <t t-foreach="o.line_ids.filtered(lambda x: x.code == 'BONOS')" t-as="line_ids">
+                                <t t-set="bonos_nombre" t-value="line_ids.name"/>
+                                <t t-set="bonos_valor" t-value="line_ids.total"/>
+                                <t t-set="bonos_quantity" t-value="line_ids.quantity"/>
+                            </t>
+                            <t t-if="bonos_valor > 0">
+                                <tr>
                                 <td>
-                                    <span t-field="line_ids.name"/>
+                                    <span t-esc="bonos_nombre"/>
                                 </td>
-                                <!--<td><span t-field="worked_days.number_of_hours"/></td>-->
 
                                 <td class="text-right">
-                                <span t-field="line_ids.quantity"/>
+                                <span t-esc="bonos_quantity"/>
                                 </td>
 
-                                <td class="text-right"><span t-field="line_ids.total" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/></td>
+                                <td class="text-right"><span t-esc="bonos_valor" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
+                                </td>
                                 <td class="text-right"> </td>
-                                <!--<td class="text-right"><span t-esc="worked_days.amount" digits="[42, 2]"
-                                          t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/></td>-->
-
                             </tr>
-                            <tr t-foreach="o.line_ids.filtered(lambda x: x.code == 'BONOS')" t-as="line_ids">
-                                <!--<td><span t-field="worked_days.code"/></td>-->
+                            </t>
+                            <t t-else="">
+                            </t>
+                            
+                            <t t-set="saludempleado_nombre" t-value=""></t>
+                            <t t-set="saludempleado_valor" t-value="0"></t>
+                            <t t-foreach="o.line_ids.filtered(lambda x: x.code == 'SALUDEMPLEADO')" t-as="line_ids">
+                                <t t-set="saludempleado_nombre" t-value="line_ids.name"/>
+                                <t t-set="saludempleado_valor" t-value="line_ids.total"/>
+                            </t>
+                            <t t-if="saludempleado_valor != 0">
+                                <tr>
                                 <td>
-                                    <span t-field="line_ids.name"/>
+                                    <span t-esc="saludempleado_nombre"/>
                                 </td>
-                                <!--<td><span t-field="worked_days.number_of_hours"/></td>-->
+
+                                <td class="text-right" t-foreach="o.worked_days_line_ids.filtered(lambda x: x.work_entry_type_id.name == 'Total Días')" t-as="worked_days">
+                                <span t-field="worked_days.number_of_days"/>
+                                </td>
 
                                 <td class="text-right">
-                                <span t-field="line_ids.quantity"/>
                                 </td>
-
-                                <td class="text-right"><span t-field="line_ids.total" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/></td>
-                                <td class="text-right"> </td>
-                                <!--<td class="text-right"><span t-esc="worked_days.amount" digits="[42, 2]"
-                                          t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/></td>-->
-
+                                <td class="text-right"><span t-esc="saludempleado_valor" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/> </td>
                             </tr>
-                            <tr t-foreach="o.line_ids.filtered(lambda x: x.code == 'PENSIONEMPLEADO')" t-as="line_ids">
-                                <!--<td><span t-field="worked_days.code"/></td>-->
+                            </t>
+                            <t t-else="">
+                            </t>
+
+                            <t t-set="pensionempleado_nombre" t-value=""></t>
+                            <t t-set="pensionempleado_valor" t-value="0"></t>
+                            <t t-foreach="o.line_ids.filtered(lambda x: x.code == 'PENSIONEMPLEADO')" t-as="line_ids">
+                                <t t-set="pensionempleado_nombre" t-value="line_ids.name"/>
+                                <t t-set="pensionempleado_valor" t-value="line_ids.total"/>
+                            </t>
+                            <t t-if="pensionempleado_valor != 0">
+                                <tr>
                                 <td>
-                                    <span t-field="line_ids.name"/>
+                                    <span t-esc="pensionempleado_nombre"/>
                                 </td>
-                                <!--<td><span t-field="worked_days.number_of_hours"/></td>-->
 
                                 <td class="text-right" t-foreach="o.worked_days_line_ids.filtered(lambda x: x.work_entry_type_id.name == 'Total Días')" t-as="worked_days">
                                 <span t-field="worked_days.number_of_days"/>
                                 </td>
 
-                                <td class="text-right"></td>
-                                <td class="text-right"> <span t-field="line_ids.total" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/></td>
-                                <!--<td class="text-right"><span t-esc="worked_days.amount" digits="[42, 2]"
-                                          t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/></td>-->
-
-                            </tr>
-                            <tr t-foreach="o.line_ids.filtered(lambda x: x.code == 'SALUDEMPLEADO')" t-as="line_ids">
-                                <!--<td><span t-field="worked_days.code"/></td>-->
-                                <td>
-                                    <span t-field="line_ids.name"/>
+                                <td class="text-right">
                                 </td>
-                                <!--<td><span t-field="worked_days.number_of_hours"/></td>-->
+                                <td class="text-right"><span t-esc="pensionempleado_valor" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/> </td>
+                            </tr>
+                            </t>
+                            <t t-else="">
+                            </t>
+
+
+                            <t t-set="descuentos_nombre" t-value=""></t>
+                            <t t-set="descuentos_valor" t-value="0"></t>
+                            <t t-foreach="o.line_ids.filtered(lambda x: x.code == 'DESCUENTOS')" t-as="line_ids">
+                                <t t-set="descuentos_nombre" t-value="line_ids.name"/>
+                                <t t-set="descuentos_valor" t-value="line_ids.total"/>
+                            </t>
+                            <t t-if="descuentos_valor != 0">
+                                <tr>
+                                <td>
+                                    <span t-esc="descuentos_nombre"/>
+                                </td>
 
                                 <td class="text-right" t-foreach="o.worked_days_line_ids.filtered(lambda x: x.work_entry_type_id.name == 'Total Días')" t-as="worked_days">
                                 <span t-field="worked_days.number_of_days"/>
                                 </td>
 
-                                <td class="text-right"></td>
-                                <td class="text-right"> <span t-field="line_ids.total" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/></td>
-                                <!--<td class="text-right"><span t-esc="worked_days.amount" digits="[42, 2]"
-                                          t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/></td>-->
-
-                            </tr>
-                            <tr t-foreach="o.line_ids.filtered(lambda x: x.code == 'DESCUENTOS')" t-as="line_ids">
-                                <!--<td><span t-field="worked_days.code"/></td>-->
-                                <td>
-                                    <span t-field="line_ids.name"/>
+                                <td class="text-right">
                                 </td>
-                                <!--<td><span t-field="worked_days.number_of_hours"/></td>-->
+                                <td class="text-right"><span t-esc="descuentos_valor" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/> </td>
+                            </tr>
+                            </t>
+                            <t t-else="">
+                            </t>
+
+                            <t t-set="fsp_nombre" t-value=""></t>
+                            <t t-set="fsp_valor" t-value="0"></t>
+                            <t t-foreach="o.line_ids.filtered(lambda x: x.code == 'FSP')" t-as="line_ids">
+                                <t t-set="fsp_nombre" t-value="line_ids.name"/>
+                                <t t-set="fsp_valor" t-value="line_ids.total"/>
+                            </t>
+                            <t t-if="fsp_valor != 0">
+                                <tr>
+                                <td>
+                                    <span t-esc="fsp_nombre"/>
+                                </td>
 
                                 <td class="text-right" t-foreach="o.worked_days_line_ids.filtered(lambda x: x.work_entry_type_id.name == 'Total Días')" t-as="worked_days">
                                 <span t-field="worked_days.number_of_days"/>
                                 </td>
 
-                                <td class="text-right"></td>
-                                <td class="text-right"> <span t-field="line_ids.total" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/></td>
-                                <!--<td class="text-right"><span t-esc="worked_days.amount" digits="[42, 2]"
-                                          t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/></td>-->
-
-                            </tr>
-                            <tr t-foreach="o.line_ids.filtered(lambda x: x.code == 'FSP')" t-as="line_ids">
-                                <!--<td><span t-field="worked_days.code"/></td>-->
-                                <td>
-                                    <span t-field="line_ids.name"/>
+                                <td class="text-right">
                                 </td>
-                                <!--<td><span t-field="worked_days.number_of_hours"/></td>-->
+                                <td class="text-right"><span t-esc="fsp_valor" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/> </td>
+                            </tr>
+                            </t>
+                            <t t-else="">
+                            </t>
+
+                            <t t-set="rtfm1_nombre" t-value=""></t>
+                            <t t-set="rtfm1_valor" t-value="0"></t>
+                            <t t-foreach="o.line_ids.filtered(lambda x: x.code == 'RTFM1')" t-as="line_ids">
+                                <t t-set="rtfm1_nombre" t-value="line_ids.name"/>
+                                <t t-set="rtfm1_valor" t-value="line_ids.total"/>
+                            </t>
+                            <t t-if="rtfm1_valor != 0">
+                                <tr>
+                                <td>
+                                    <span t-esc="rtfm1_nombre"/>
+                                </td>
 
                                 <td class="text-right" t-foreach="o.worked_days_line_ids.filtered(lambda x: x.work_entry_type_id.name == 'Total Días')" t-as="worked_days">
                                 <span t-field="worked_days.number_of_days"/>
                                 </td>
 
-                                <td class="text-right"></td>
-                                <td class="text-right"> <span t-field="line_ids.total" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/></td>
-                                <!--<td class="text-right"><span t-esc="worked_days.amount" digits="[42, 2]"
-                                          t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/></td>-->
-
-                            </tr>
-                            <tr t-foreach="o.line_ids.filtered(lambda x: x.code == 'RTFM1')" t-as="line_ids">
-                                <!--<td><span t-field="worked_days.code"/></td>-->
-                                <td>
-                                    <span t-field="line_ids.name"/>
+                                <td class="text-right">
                                 </td>
-                                <!--<td><span t-field="worked_days.number_of_hours"/></td>-->
-
-                                <td class="text-right" t-foreach="o.worked_days_line_ids.filtered(lambda x: x.work_entry_type_id.name == 'Total Días')" t-as="worked_days">
-                                <span t-field="worked_days.number_of_days"/>
-                                </td>
-
-                                <td class="text-right"></td>
-                                <td class="text-right"> <span t-field="line_ids.total" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/></td>
-                                <!--<td class="text-right"><span t-esc="worked_days.amount" digits="[42, 2]"
-                                          t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/></td>-->
-
+                                <td class="text-right"><span t-esc="rtfm1_valor" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/> </td>
                             </tr>
+                            </t>
+                            <t t-else="">
+                            </t>
+
+                            
+
 
 
                         </tbody>
