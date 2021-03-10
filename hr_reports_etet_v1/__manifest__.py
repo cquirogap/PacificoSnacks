@@ -17,6 +17,9 @@
     'data': [
 
         'views/report_payslip_inherit.xml',
+        'views/liquidacion_contrato_report.xml',
+        'views/hr_payslip_inherit_view.xml',
+
 
     ],
     'qweb': [
