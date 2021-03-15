@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+	<record id="hr_contract_vacation_view_form" model="ir.ui.view">
+		<field name="name">hr.contract.vacation.view.form</field>
+		<field name="model">hr.contract</field>
+		<field name="inherit_id" ref="hr_contract.hr_contract_view_form"/>
+		<field name="arch" type="xml">
+			<xpath expr="//page[@name='information']" position="after">
+				<page string="Vacaciones" name="vacations">
+					<group>
+						<group name="vacation" string="Días de Vacaciones">
+							<field name="vacation_initial"/>
+							<field name="accumulated_vacation"/>
+							<field name="vacation_used"/>
+							<field name="vacations_available"/>
+						</group>
+					</group>
+					<group name="vacation history" string="Historial de vacaciones disfrutadas">
+					</group>
+					<field name="vacations_history">
+						<tree string="vacations_history_tree">
+							<field name="holiday_status_id" />
+							<field name="name" />
+							<field name="state" />
+							<field name="request_date_from" />
+							<field name="request_date_to" />
+							<field name="number_of_days" />
+						</tree>
+					</field>
+				</page>
+			</xpath>
+		</field>
+	</record>
+</odoo>
