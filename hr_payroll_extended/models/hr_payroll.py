@@ -104,14 +104,14 @@ class HrPayslip(models.Model):
         return loans_ids
 
     def get_inputs_loans_12month_before(self, contract_id, date_from, date_to):
-        lm12_date_end = date(date_to.year, date_to.month, date_to.day) - relativedelta(months=1)
-        lm12_date_end = date(lm12_date_end.year, lm12_date_end.month, 30)
+        lm12_date_end = date(date_to.year, date_to.month, 1) - relativedelta(days=1)
         lm12_date_ini = lm12_date_end - relativedelta(months=11)
         lm12_date_ini = date(lm12_date_ini.year, lm12_date_ini.month, 1)
-        if contract.date_start <= lm12_date_ini:
+
+        if contract_id.date_start <= lm12_date_ini:
             lm12_date_init = lm12_date_ini
         else:
-            lm12_date_init = contract.date_start
+            lm12_date_init = contract_id.date_start
 
         self._cr.execute(''' SELECT i.name, i.code, l.amount, i.id
                                 FROM hr_loan_line l
@@ -125,14 +125,13 @@ class HrPayslip(models.Model):
         return loans_ids
 
     def get_inputs_hora_extra_12month_before(self, contract_id, date_from, date_to):
-        hm12_date_end = date(date_to.year, date_to.month, date_to.day) - relativedelta(months=1)
-        hm12_date_end = date(hm12_date_end.year, hm12_date_end.month, 30)
+        hm12_date_end = date(date_to.year, date_to.month, 1) - relativedelta(days=1)
         hm12_date_ini = hm12_date_end - relativedelta(months=11)
         hm12_date_ini = date(hm12_date_ini.year, hm12_date_ini.month, 1)
-        if contract.date_start <= hm12_date_ini:
+        if contract_id.date_start <= hm12_date_ini:
             hm12_date_init = hm12_date_ini
         else:
-            hm12_date_init = contract.date_start
+            hm12_date_init = contract_id.date_start
 
         self._cr.execute(''' SELECT i.name, i.code, h.amount, i.id FROM hr_extras h
                                 INNER JOIN hr_payslip_input_type i ON i.id=h.input_id
@@ -276,8 +275,7 @@ class HrPayslip(models.Model):
                     })
             horas_extras_12month_before = self.get_inputs_hora_extra_12month_before(contract, date_from, date_to)
             if horas_extras_12month_before:
-                hm12_date_end = date(date_to.year, date_to.month, date_to.day) - relativedelta(months=1)
-                hm12_date_end = date(hm12_date_end.year, hm12_date_end.month, 30)
+                hm12_date_end = date(date_to.year, date_to.month, 1) - relativedelta(days=1)
                 hm12_date_ini = hm12_date_end - relativedelta(months=11)
                 hm12_date_ini = date(hm12_date_ini.year, hm12_date_ini.month, 1)
                 if contract.date_start <= hm12_date_ini:
@@ -386,7 +384,8 @@ class HrPayslip(models.Model):
                     hdate_init = hdate_init_year
                 else:
                     hdate_init = contract.date_start
-                month_end = date(date_to.year, date_to.month, 30)
+                month_end = date(date_to.year, date_to.month, 1) + relativedelta(months=1)
+                month_end = month_end - relativedelta(days=1)
                 total_month = days_between(hdate_init, month_end)
                 total_month = int(total_month / 30)
                 counth25 = 0
@@ -592,8 +591,7 @@ class HrPayslip(models.Model):
                     })
             inputs_loans_12month_before = self.get_inputs_loans_12month_before(contract, date_from, date_to)
             if inputs_loans_12month_before:
-                lm12_date_end = date(date_to.year, date_to.month, date_to.day) - relativedelta(months=1)
-                lm12_date_end = date(lm12_date_end.year, lm12_date_end.month, 30)
+                lm12_date_end = date(date_to.year, date_to.month, 1) - relativedelta(days=1)
                 lm12_date_ini = lm12_date_end - relativedelta(months=11)
                 lm12_date_ini = date(lm12_date_ini.year, lm12_date_ini.month, 1)
                 if contract.date_start <= lm12_date_ini:
@@ -626,7 +624,8 @@ class HrPayslip(models.Model):
                     ldate_init = ldate_init_year
                 else:
                     ldate_init = contract.date_start
-                lmonth_end = date(date_to.year, date_to.month, 30)
+                lmonth_end = date(date_to.year, date_to.month, 1) + relativedelta(months=1)
+                lmonth_end = lmonth_end - relativedelta(days=1)
                 total_month = days_between(ldate_init, lmonth_end)
                 total_month = int(total_month / 30)
                 countb = 0
