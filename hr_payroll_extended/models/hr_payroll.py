@@ -176,6 +176,58 @@ class HrPayslip(models.Model):
         loans_ids = self._cr.fetchall()
         return loans_ids
 
+    def get_amount_transport_subsidy_year(self, contract_id, date_from, date_to):
+        count = 0
+        amount_transp = 0
+        date_init_year = date(date_from.year, 1, 1)
+        if contract_id.date_start <= date_init_year:
+            date_init = date_init_year
+        else:
+            date_init = contract_id.date_start
+        date_end = date(date_init.year, date_init.month, 1) + relativedelta(months=1)
+        date_end = date_end - relativedelta(days=1)
+
+        while date_end <= date_to:
+
+            transport_subsidy_ids = self.env['hr.payroll_data'].search([("contract_id", "=", contract_id.id),
+                                                                         ("fecha_final", ">=",date_init),
+                                                                         ("fecha_final", "<=", date_end),
+                                                                         ])
+            if transport_subsidy_ids:
+                for t in transport_subsidy_ids:
+                    amount_transp += transport_subsidy_ids.auxilio_transporte
+                count += 1
+            else:
+                payslip = self.env['hr.payslip'].search([("contract_id", "=", contract_id.id),
+                                                                           ("date_from", ">=", date_init),
+                                                                           ("date_to", "<=", date_end),
+                                                                           ("type_payslip_id.name", "=", 'Nomina'),
+                                                                            ], limit=1)
+                if payslip:
+                    for slip in payslip:
+                        transport_subsidy_payslip = payslip.line_ids.search([("code", "=", 'SUBSTRAN'),("slip_id", "=", slip.id)], limit=1)
+                        if transport_subsidy_payslip:
+                            amount_transp += transport_subsidy_payslip.total
+                            count += 1
+                        else:
+                            amount_transp += 0
+                            count += 1
+
+                else:
+                    amount_transp += 0
+                    count += 1
+
+            date_init = date_init + relativedelta(months=1)
+            date_end = date(date_init.year, date_init.month, 1) + relativedelta(months=1)
+            date_end = date_end - relativedelta(days=1)
+
+        if count == 0:
+            amount_transp = amount_transp
+        else:
+            amount_transp = amount_transp / count
+
+        return amount_transp
+
     def get_inputs_withholding_tax(self, contract_id, date_from, date_to):
         date_month_now_from = date(date_from.year, date_from.month, 1)
         date_month_next = date_month_now_from + relativedelta(months=1)
@@ -741,6 +793,17 @@ class HrPayslip(models.Model):
                         "code_input": 'BONIFICACION_YEARS_NOW',
                         "name_input": 'Bonificación Promedio Anual',
                     })
+            amount_transport_subsidy_pyear = self.get_amount_transport_subsidy_year(contract, date_from, date_to)
+            if amount_transport_subsidy_pyear and amount_transport_subsidy_pyear > 0 :
+                code_aux_transp = self.env['hr.payslip.input.type'].search([("code", "=", 'AUX_TRANSPORTE_PYEARS')], limit=1).id
+                self.env['hr.payslip.input'].create({
+                    "sequence": 1,
+                    "amount": amount_transport_subsidy_pyear,
+                    "payslip_id": self.id,
+                    "input_type_id": code_aux_transp if code_aux_transp else inputb_type_id,
+                    "code_input": 'AUX_TRANSPORTE_PYEARS',
+                    "name_input": 'Auxilio de Transporte Promedio Anual',
+                })
             if contract.retention_method == 'M1':
                 inputs_withholding_tax = self.get_inputs_withholding_tax(contract, date_from, date_to)
                 if inputs_withholding_tax:
