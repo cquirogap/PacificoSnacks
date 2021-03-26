@@ -63,9 +63,7 @@ class HrPayslip(models.Model):
         return horas_extras
 
     def get_inputs_hora_extra_12month_before(self, contract_id, date_from, date_to):
-        hm12_date_end = date(date_to.year, date_to.month, 1) - relativedelta(days=1)
-        hm12_date_ini = hm12_date_end - relativedelta(months=11)
-        hm12_date_ini = date(hm12_date_ini.year, hm12_date_ini.month, 1)
+        hm12_date_ini = date_to - relativedelta(months=12)
         if contract_id.date_start <= hm12_date_ini:
             hm12_date_init = hm12_date_ini
         else:
@@ -75,7 +73,7 @@ class HrPayslip(models.Model):
                                    INNER JOIN hr_payslip_input_type i ON i.id=h.input_id
                                    WHERE h.contract_id=%s AND h.state='approved'
                                    AND h.date BETWEEN %s AND %s
-                                   ORDER BY i.code''', (contract_id.id, hm12_date_init, hm12_date_end))
+                                   ORDER BY i.code''', (contract_id.id, hm12_date_init, date_to))
         horas_extras = self._cr.fetchall()
         return horas_extras
 
@@ -139,9 +137,7 @@ class HrPayslip(models.Model):
         return loans_ids
 
     def get_inputs_loans_12month_before(self, contract_id, date_from, date_to):
-        lm12_date_end = date(date_to.year, date_to.month, 1) - relativedelta(days=1)
-        lm12_date_ini = lm12_date_end - relativedelta(months=11)
-        lm12_date_ini = date(lm12_date_ini.year, lm12_date_ini.month, 1)
+        lm12_date_ini = date_to - relativedelta(months=12)
 
         if contract_id.date_start <= lm12_date_ini:
             lm12_date_init = lm12_date_ini
@@ -155,7 +151,7 @@ class HrPayslip(models.Model):
                                 WHERE h.contract_id=%s AND h.state='approve'
                                 AND l.date BETWEEN %s AND %s
                                 AND h.loan_fijo IS False
-                                ORDER BY i.code ''', (contract_id.id, lm12_date_init, lm12_date_end))
+                                ORDER BY i.code ''', (contract_id.id, lm12_date_init, date_to))
         loans_ids = self._cr.fetchall()
         return loans_ids
 
@@ -423,15 +419,12 @@ class HrPayslip(models.Model):
                     })
             horas_extras_12month_before = self.get_inputs_hora_extra_12month_before(contract, date_from, date_to)
             if horas_extras_12month_before:
-                hm12_date_end = date(date_to.year, date_to.month, 1) - relativedelta(days=1)
-                hm12_date_ini = hm12_date_end - relativedelta(months=11)
-                hm12_date_ini = date(hm12_date_ini.year, hm12_date_ini.month, 1)
+                hm12_date_ini = date_to - relativedelta(months=12)
                 if contract.date_start <= hm12_date_ini:
                     hm12_date_init = hm12_date_ini
                 else:
                     hm12_date_init = contract.date_start
-                total_month12 = days_between(hm12_date_init, hm12_date_end)
-                total_month12 = int(total_month12 / 30)
+                total_days12y = days_between(hm12_date_init, date_to)
                 counth25 = 0
                 amounth25 = 0
                 inputh25_type_id = 0
@@ -483,7 +476,7 @@ class HrPayslip(models.Model):
                 if not amounth25 == 0:
                     self.env['hr.payslip.input'].create({
                         "sequence": 1,
-                        "amount": amounth25/ total_month12,
+                        "amount": (amounth25/total_days12y)*30,
                         "payslip_id": self.id,
                         "input_type_id": inputh25_type_id,
                         "code_input": 'EXTRADIURNA_PYEARS',
@@ -492,7 +485,7 @@ class HrPayslip(models.Model):
                 if not amounth35 == 0:
                     self.env['hr.payslip.input'].create({
                         "sequence": 1,
-                        "amount": amounth35 / total_month12,
+                        "amount": (amounth35/total_days12y)*30,
                         "payslip_id": self.id,
                         "input_type_id": inputh35_type_id,
                         "code_input": 'RECARGONOCTURNO_PYEARS',
@@ -501,7 +494,7 @@ class HrPayslip(models.Model):
                 if not amounth75 == 0:
                     self.env['hr.payslip.input'].create({
                         "sequence": 1,
-                        "amount": amounth75 / total_month12,
+                        "amount": (amounth75/total_days12y)*30,
                         "payslip_id": self.id,
                         "input_type_id": inputh75_type_id,
                         "code_input": 'EXTRANOCTURNA_PYEARS',
@@ -510,7 +503,7 @@ class HrPayslip(models.Model):
                 if not amounthf75 == 0:
                     self.env['hr.payslip.input'].create({
                         "sequence": 1,
-                        "amount": amounthf75 / total_month12,
+                        "amount": (amounthf75/total_days12y)*30,
                         "payslip_id": self.id,
                         "input_type_id": inputhf75_type_id,
                         "code_input": 'RECARGODIURNOFESTIVO_PYEARS',
@@ -519,7 +512,7 @@ class HrPayslip(models.Model):
                 if not amounth110 == 0:
                     self.env['hr.payslip.input'].create({
                         "sequence": 1,
-                        "amount": amounth110 / total_month12,
+                        "amount": (amounth110/total_days12y)*30,
                         "payslip_id": self.id,
                         "input_type_id": inputh110_type_id,
                         "code_input": 'RECARGONOCTURNOFESTIVO_PYEARS',
@@ -532,10 +525,7 @@ class HrPayslip(models.Model):
                     hdate_init = hdate_init_year
                 else:
                     hdate_init = contract.date_start
-                month_end = date(date_to.year, date_to.month, 1) + relativedelta(months=1)
-                month_end = month_end - relativedelta(days=1)
-                total_month = days_between(hdate_init, month_end)
-                total_month = int(total_month / 30)
+                total_days = days_between(hdate_init, date_to)
                 counth25 = 0
                 amounth25 = 0
                 inputh25_type_id = 0
@@ -585,7 +575,7 @@ class HrPayslip(models.Model):
                 if not amounth25 == 0:
                     self.env['hr.payslip.input'].create({
                         "sequence": 1,
-                        "amount": amounth25 / total_month,
+                        "amount": (amounth25/total_days)*30,
                         "payslip_id": self.id,
                         "input_type_id": inputh25_type_id,
                         "code_input": 'EXTRADIURNA_YEARS_NOW',
@@ -594,7 +584,7 @@ class HrPayslip(models.Model):
                 if not amounth35 == 0:
                     self.env['hr.payslip.input'].create({
                         "sequence": 1,
-                        "amount": amounth35 / total_month,
+                        "amount": (amounth35/total_days)*30,
                         "payslip_id": self.id,
                         "input_type_id": inputh35_type_id,
                         "code_input": 'RECARGONOCTURNO_YEARS_NOW',
@@ -603,7 +593,7 @@ class HrPayslip(models.Model):
                 if not amounth75 == 0:
                     self.env['hr.payslip.input'].create({
                         "sequence": 1,
-                        "amount": amounth75 / total_month,
+                        "amount": (amounth75/total_days)*30,
                         "payslip_id": self.id,
                         "input_type_id": inputh75_type_id,
                         "code_input": 'EXTRANOCTURNA_YEARS_NOW',
@@ -612,7 +602,7 @@ class HrPayslip(models.Model):
                 if not amounthf75 == 0:
                     self.env['hr.payslip.input'].create({
                         "sequence": 1,
-                        "amount": amounthf75 / total_month,
+                        "amount": (amounthf75/total_days)*30,
                         "payslip_id": self.id,
                         "input_type_id": inputhf75_type_id,
                         "code_input": 'RECARGODIURNOFESTIVO_YEARS_NOW',
@@ -621,7 +611,7 @@ class HrPayslip(models.Model):
                 if not amounth110 == 0:
                     self.env['hr.payslip.input'].create({
                         "sequence": 1,
-                        "amount": amounth110 / total_month,
+                        "amount": (amounth110/total_days)*30,
                         "payslip_id": self.id,
                         "input_type_id": inputh110_type_id,
                         "code_input": 'RECARGONOCTURNOFESTIVO_YEARS_NOW',
@@ -739,15 +729,12 @@ class HrPayslip(models.Model):
                     })
             inputs_loans_12month_before = self.get_inputs_loans_12month_before(contract, date_from, date_to)
             if inputs_loans_12month_before:
-                lm12_date_end = date(date_to.year, date_to.month, 1) - relativedelta(days=1)
-                lm12_date_ini = lm12_date_end - relativedelta(months=11)
-                lm12_date_ini = date(lm12_date_ini.year, lm12_date_ini.month, 1)
+                lm12_date_ini = date_to - relativedelta(months=12)
                 if contract.date_start <= lm12_date_ini:
                     lm12_date_init = lm12_date_ini
                 else:
                     lm12_date_init = contract.date_start
-                total_montl12 = days_between(lm12_date_init, lm12_date_end)
-                total_montl12 = int(total_montl12 / 30)
+                total_dayl12 = days_between(lm12_date_init, date_to)
                 countb = 0
                 amountb = 0
                 inputb_type_id = 0
@@ -759,7 +746,7 @@ class HrPayslip(models.Model):
                 if not amountb == 0:
                     self.env['hr.payslip.input'].create({
                         "sequence": 1,
-                        "amount": amountb/total_montl12,
+                        "amount": (amountb/total_dayl12)*30,
                         "payslip_id": self.id,
                         "input_type_id": inputb_type_id,
                         "code_input": 'BONIFICACION_PYEARS',
@@ -772,10 +759,7 @@ class HrPayslip(models.Model):
                     ldate_init = ldate_init_year
                 else:
                     ldate_init = contract.date_start
-                lmonth_end = date(date_to.year, date_to.month, 1) + relativedelta(months=1)
-                lmonth_end = lmonth_end - relativedelta(days=1)
-                total_month = days_between(ldate_init, lmonth_end)
-                total_month = int(total_month / 30)
+                ltotal_days = days_between(ldate_init, date_to)
                 countb = 0
                 amountb = 0
                 inputb_type_id = 0
@@ -787,7 +771,7 @@ class HrPayslip(models.Model):
                 if not amountb == 0:
                     self.env['hr.payslip.input'].create({
                         "sequence": 1,
-                        "amount": amountb/total_month,
+                        "amount": (amountb/ltotal_days)*30,
                         "payslip_id": self.id,
                         "input_type_id": inputb_type_id,
                         "code_input": 'BONIFICACION_YEARS_NOW',
