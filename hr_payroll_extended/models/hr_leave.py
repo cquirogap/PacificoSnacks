@@ -17,11 +17,24 @@ from odoo.osv import expression
 from odoo.exceptions import except_orm, Warning, RedirectWarning, ValidationError
 import pytz
 _logger = logging.getLogger(__name__)
+import dateutil.parser
+from dateutil.relativedelta import relativedelta
 
 # Used to agglomerate the attendances in order to find the hour_from and hour_to
 # See _onchange_request_parameters
 DummyAttendance = namedtuple('DummyAttendance', 'hour_from, hour_to, dayofweek, day_period, week_type')
-           
+
+def days_between(start_date, end_date):
+    #Add 1 day to end date to solve different last days of month
+    #s1, e1 =  datetime.strptime(start_date,"%Y-%m-%d") , datetime.strptime(end_date,"%Y-%m-%d")  + timedelta(days=1)
+    s1, e1 =  start_date , end_date + timedelta(days=1)
+    #Convert to 360 days
+    s360 = (s1.year * 12 + s1.month) * 30 + s1.day
+    e360 = (e1.year * 12 + e1.month) * 30 + e1.day
+    #Count days between the two 360 dates and return tuple (months, days)
+    res = divmod(e360 - s360, 30)
+    return ((res[0] * 30) + res[1]) or 0
+
 class HrLeave(models.Model):
     _inherit = 'hr.leave'
 
@@ -33,6 +46,7 @@ class HrLeave(models.Model):
     )
 
     days_vacations = fields.Integer(string="Vacaciones Disponibles", compute='get_days_vacations')
+    amount_vacations = fields.Float(string="Valor Pagado", compute='get_amount_vacations')
 
     @api.depends('employee_id')
     def get_days_vacations(self):
@@ -42,6 +56,112 @@ class HrLeave(models.Model):
                 self.days_vacations = contract.vacations_available
         else:
             self.days_vacations = 0
+
+    def get_amount_vacations(self):
+        contracts = self.env['hr.contract'].search([('employee_id', '=', self.employee_id.id)])
+        if contracts and self.holiday_status_id.id == 6 :
+            for contract in contracts:
+                salary = contract.wage
+                total_extra_hour = 0
+                total_bonus = 0
+                date_from = str(self.date_from)
+                date_from = dateutil.parser.parse(date_from).date()
+                date_to = str(self.date_to)
+                date_to = dateutil.parser.parse(date_to).date()
+                horas_extras_12month_before = self.env['hr.payslip'].get_inputs_hora_extra_12month_before(contract, date_from, date_to)
+                if horas_extras_12month_before:
+                    hm12_date_ini = date_to - relativedelta(months=12)
+                    if contract.date_start <= hm12_date_ini:
+                        hm12_date_init = hm12_date_ini
+                    else:
+                        hm12_date_init = contract.date_start
+                    total_days12y = days_between(hm12_date_init, date_to)
+                    amounth25 = 0
+                    amounth35 = 0
+                    amounth75 = 0
+                    amounthf75 = 0
+                    amounth110 = 0
+                    for hora in horas_extras_12month_before:
+                        if hora[1] == 'RECARGONOCTURNO':
+                            amounth35 = amounth35 + hora[2]
+                        if hora[1] == 'RECARGODIURNOFESTIVO':
+                            amounthf75 = amounthf75 + hora[2]
+                        if hora[1] == 'RECARGONOCTURNOFESTIVO':
+                            amounth110 = amounth110 + hora[2]
+                        if hora[1] == 'EXTRADIURNA':
+                            amounth25 = amounth25 + hora[2]
+                        if hora[1] == 'EXTRANOCTURNA':
+                            amounth75 = amounth75 + hora[2]
+
+                    if not amounth25 == 0:
+                        amounth25 = round(((amounth25 / total_days12y) * 30), 2)
+                        percentage = self.env['hr.salary.rule'].search([("code", "=", 'P_EXTRADIURNA')],
+                                                                       limit=1).amount_fix
+                        if percentage:
+                            amounth_hour = round(((salary / 240) * percentage), 2)
+                            amounth25 = round((amounth25 * amounth_hour), 2)
+                        else:
+                            amounth_hour = round((salary / 240), 2)
+                            amounth25 = round((amounth25 * amounth_hour), 2)
+                    if not amounth35 == 0:
+                        amounth35 = round(((amounth35 / total_days12y) * 30), 2)
+                        percentage = self.env['hr.salary.rule'].search([("code", "=", 'P_RECARGONOCTURNO')],limit=1).amount_fix
+                        if percentage:
+                            amounth_hour = round(((salary / 240) * percentage), 2)
+                            amounth35 = round((amounth35 * amounth_hour), 2)
+                        else:
+                            amounth_hour = round((salary / 240), 2)
+                            amounth35 = round((amounth35 * amounth_hour), 2)
+                    if not amounth75 == 0:
+                        amounth75 = round(((amounth75 / total_days12y) * 30), 2)
+                        percentage = self.env['hr.salary.rule'].search([("code", "=", 'P_EXTRANOCTURNA')],
+                                                                       limit=1).amount_fix
+                        if percentage:
+                            amounth_hour = round(((salary / 240) * percentage), 2)
+                            amounth75 = round((amounth75 * amounth_hour), 2)
+                        else:
+                            amounth_hour = round((salary / 240), 2)
+                            amounth75 = round((amounth75 * amounth_hour), 2)
+                    if not amounthf75 == 0:
+                        amounthf75 = round(((amounthf75 / total_days12y) * 30), 2)
+                        percentage = self.env['hr.salary.rule'].search([("code", "=", 'P_RECARGODIURNOFESTIVO')],
+                                                                       limit=1).amount_fix
+                        if percentage:
+                            amounth_hour = round(((salary / 240) * percentage), 2)
+                            amounthf75 = round((amounthf75 * amounth_hour), 2)
+                        else:
+                            amounth_hour = round((salary / 240), 2)
+                            amounthf75 = round((amounthf75 * amounth_hour), 2)
+                    if not amounth110 == 0:
+                        amounth110 = round(((amounth110 / total_days12y) * 30), 2)
+                        percentage = self.env['hr.salary.rule'].search([("code", "=", 'P_RECARGONOCTURNOFESTIVO')],
+                                                                       limit=1).amount_fix
+                        if percentage:
+                            amounth_hour = round(((salary / 240) * percentage), 2)
+                            amounth110 = round((amounth110 * amounth_hour), 2)
+                        else:
+                            amounth_hour = round((salary / 240), 2)
+                            amounth110 = round((amounth110 * amounth_hour), 2)
+
+                    total_extra_hour = amounth25 + amounth35 + amounth75 + amounthf75 + amounth110
+                inputs_loans_12month_before = self.env['hr.payslip'].get_inputs_loans_12month_before(contract, date_from, date_to)
+                if inputs_loans_12month_before:
+                    lm12_date_ini = date_to - relativedelta(months=12)
+                    if contract.date_start <= lm12_date_ini:
+                        lm12_date_init = lm12_date_ini
+                    else:
+                        lm12_date_init = contract.date_start
+                    total_dayl12 = days_between(lm12_date_init, date_to)
+                    total_bonus = 0
+                    for loans in inputs_loans_12month_before:
+                        if loans[1] == 'BONIFICACION':
+                            total_bonus = total_bonus + loans[2]
+                    if not total_bonus == 0:
+                        total_bonus = round((total_bonus/total_dayl12)*30, 2)
+                self.amount_vacations = round((((salary + total_bonus + total_extra_hour)/30) * self.number_of_days),2)
+        else:
+            self.amount_vacations = 0
+
     '''
     def write(self, values):
         # El 6 corresponde al tipo de ausencia de vacaciones, en caso de modificar el registro se debe cambiar el numero a evaluar

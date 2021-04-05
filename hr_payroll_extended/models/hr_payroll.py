@@ -957,6 +957,26 @@ class HrPayslip(models.Model):
             }
             res.append(attendances_year_total)
 
+            leave = self.env['hr.work.entry'].search([("date_start", ">=", self.date_from),
+                                                      ("date_stop", "<=", self.date_to),
+                                                      ("work_entry_type_id", "=", 6),
+                                                      ("employee_id", "=", contract.employee_id.id)])
+
+            for l in leave.leave_id:
+                total_days = l.number_of_days
+                total_hours = total_days * contract.resource_calendar_id.hours_per_day
+                work_entry_type = self.env['hr.work.entry.type'].search([("code", "=", 'TOTALAE')], limit=1)
+                totalae = {
+                    'sequence': work_entry_type.sequence,
+                    'work_entry_type_id': work_entry_type.id,
+                    'name': work_entry_type.code,
+                    'number_of_days': total_days,
+                    'number_of_hours': total_hours,
+                    # 'amount': total_hours * paid_amount / total_hours or 0,
+                    'amount': total_days * (paid_amount / 30) or 0,
+
+                }
+                res.append(totalae)
         return res
 
     def _get_payslip_lines(self):
