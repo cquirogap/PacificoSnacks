@@ -18,6 +18,9 @@ import pytz
 import logging
 
 _logger = logging.getLogger(__name__)
+
+def days360(s, e):
+    return ( ((e.year * 12 + e.month) * 30 + e.day) - ((s.year * 12 + s.month) * 30 + s.day))
            
 class HrContract(models.Model):
     """
@@ -44,7 +47,8 @@ class HrContract(models.Model):
             else:
                 date_to = datetime.combine(date.today(), datetime.max.time())
            # time_worked = self.env['hr.leave']._get_number_of_days(date_from, date_to, self.employee_id.id)['days']
-            time_worked = (date_to - date_from).days
+           # time_worked = (date_to - date_from).days
+            time_worked = days360( date_from ,date_to)
             if float(time_worked) >= 30:
                 accumulated_vacation = (time_worked/30) * 1.25
             else:

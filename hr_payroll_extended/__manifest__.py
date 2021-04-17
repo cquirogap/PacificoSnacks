@@ -16,6 +16,7 @@
         'hr_holidays',
         'analytic',
         'hr_work_entry',
+        'hr_payroll_account',
         ],
     'description': '''
 
