@@ -27,6 +27,10 @@ GENDER_SELECTION = [('male', 'Male'),
                     ('female', 'Female'),
                     ('other', 'Other')]
 
+class partner(models.Model):
+    _inherit = 'res.partner'
+    employee_ids = fields.One2many('hr.employee', 'partner_id', string='empleado asociado')
+
 
 class HrEmployeeFamilyInfo(models.Model):
     """Table for keep employee family information"""
@@ -90,7 +94,7 @@ class HrEmployee(models.Model):
                                               string="Attachment",
                                               help='You can attach the copy of Passport')
     fam_ids = fields.One2many('hr.employee.family', 'employee_id', string='Family', help='Family Information')
-
+    partner_id = fields.Many2one('res.partner', string="Asociado")
     @api.depends('contract_id')
     def compute_joining(self):
         if self.contract_id:

@@ -14,3 +14,4 @@ from . import hr_deductions_rt
 from . import hr_deduction_concepts
 from . import hr_withholding_tax
 from . import hr_payroll_data
+from . import hr_payroll_account
