@@ -49,6 +49,7 @@ class HrContract(models.Model):
            # time_worked = self.env['hr.leave']._get_number_of_days(date_from, date_to, self.employee_id.id)['days']
            # time_worked = (date_to - date_from).days
             time_worked = days360( date_from ,date_to)
+            time_worked = time_worked+1
             if float(time_worked) >= 30:
                 accumulated_vacation = (time_worked/30) * 1.25
             else:
