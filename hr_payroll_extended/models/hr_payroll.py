@@ -49,6 +49,49 @@ class HrPayslip(models.Model):
         horas_extras = self._cr.fetchall()
         return horas_extras
 
+    def get_inputs_hora_extra_month_before(self, contract_id, date_from, date_to):
+        date_before = date_from - relativedelta(months=1)
+        date_before_from = date(date_before.year, date_before.month, 1)
+        date_before_to = date(date_from.year, date_from.month, 1) - relativedelta(days=1)
+
+        self._cr.execute(''' SELECT i.name, i.code, h.amount, i.id FROM hr_extras h
+                                INNER JOIN hr_payslip_input_type i ON i.id=h.input_id
+                                WHERE h.contract_id=%s AND h.state='approved'
+                                AND h.date BETWEEN %s AND %s
+                                ORDER BY i.code''',(contract_id.id, date_before_from, date_before_to))
+        horas_extras = self._cr.fetchall()
+        return horas_extras
+
+    def get_inputs_hora_extra_12month_before(self, contract_id, date_from, date_to):
+        hm12_date_ini = date_to - relativedelta(months=12)
+        if contract_id.date_start <= hm12_date_ini:
+            hm12_date_init = hm12_date_ini
+        else:
+            hm12_date_init = contract_id.date_start
+
+        self._cr.execute(''' SELECT i.name, i.code, h.amount, i.id FROM hr_extras h
+                                   INNER JOIN hr_payslip_input_type i ON i.id=h.input_id
+                                   WHERE h.contract_id=%s AND h.state='approved'
+                                   AND h.date BETWEEN %s AND %s
+                                   ORDER BY i.code''', (contract_id.id, hm12_date_init, date_to))
+        horas_extras = self._cr.fetchall()
+        return horas_extras
+
+    def get_inputs_hora_extra_year_now(self, contract_id, date_from, date_to):
+        date_init_year = date(date_from.year, 1, 1)
+        if contract_id.date_start <= date_init_year:
+            date_init = date_init_year
+        else:
+            date_init = contract_id.date_start
+
+        self._cr.execute(''' SELECT i.name, i.code, h.amount, i.id FROM hr_extras h
+                                INNER JOIN hr_payslip_input_type i ON i.id=h.input_id
+                                WHERE h.contract_id=%s AND h.state='approved'
+                                AND h.date BETWEEN %s AND %s
+                                ORDER BY i.code''',(contract_id.id, date_init, date_to))
+        horas_extras = self._cr.fetchall()
+        return horas_extras
+
     def get_inputs_loans(self, contract_id, date_from, date_to):
         self._cr.execute(''' SELECT i.name, i.code, l.amount, i.id
                                 FROM hr_loan_line l
@@ -59,17 +102,7 @@ class HrPayslip(models.Model):
                                 AND h.loan_fijo IS False
                                 ORDER BY i.code ''',(contract_id.id, date_from, date_to))
         loans_ids = self._cr.fetchall()
-        return loans_ids        
-
-    def get_inputs_loans_fijos(self, contract_id):
-        self._cr.execute(''' SELECT i.name, i.code, h.loan_amount
-                                FROM hr_loan h
-                                INNER JOIN hr_payslip_input_type i ON i.id=h.input_id
-                                WHERE h.contract_id=%s AND h.state='approve'
-                                AND h.loan_fijo IS True
-                                ORDER BY i.code ''',(contract_id.id,))
-        loans_fijos_ids = self._cr.fetchall()
-        return loans_fijos_ids
+        return loans_ids
 
     def get_inputs_loans_month_before(self, contract_id, date_from, date_to):
         date_before = date_from - relativedelta(months=1)
@@ -104,9 +137,7 @@ class HrPayslip(models.Model):
         return loans_ids
 
     def get_inputs_loans_12month_before(self, contract_id, date_from, date_to):
-        lm12_date_end = date(date_to.year, date_to.month, 1) - relativedelta(days=1)
-        lm12_date_ini = lm12_date_end - relativedelta(months=11)
-        lm12_date_ini = date(lm12_date_ini.year, lm12_date_ini.month, 1)
+        lm12_date_ini = date_to - relativedelta(months=12)
 
         if contract_id.date_start <= lm12_date_ini:
             lm12_date_init = lm12_date_ini
@@ -120,37 +151,9 @@ class HrPayslip(models.Model):
                                 WHERE h.contract_id=%s AND h.state='approve'
                                 AND l.date BETWEEN %s AND %s
                                 AND h.loan_fijo IS False
-                                ORDER BY i.code ''', (contract_id.id, lm12_date_init, lm12_date_end))
+                                ORDER BY i.code ''', (contract_id.id, lm12_date_init, date_to))
         loans_ids = self._cr.fetchall()
         return loans_ids
-
-    def get_inputs_hora_extra_12month_before(self, contract_id, date_from, date_to):
-        hm12_date_end = date(date_to.year, date_to.month, 1) - relativedelta(days=1)
-        hm12_date_ini = hm12_date_end - relativedelta(months=11)
-        hm12_date_ini = date(hm12_date_ini.year, hm12_date_ini.month, 1)
-        if contract_id.date_start <= hm12_date_ini:
-            hm12_date_init = hm12_date_ini
-        else:
-            hm12_date_init = contract_id.date_start
-
-        self._cr.execute(''' SELECT i.name, i.code, h.amount, i.id FROM hr_extras h
-                                INNER JOIN hr_payslip_input_type i ON i.id=h.input_id
-                                WHERE h.contract_id=%s AND h.state='approved'
-                                AND h.date BETWEEN %s AND %s
-                                ORDER BY i.code''',(contract_id.id, hm12_date_init, hm12_date_end))
-        horas_extras = self._cr.fetchall()
-        return horas_extras
-
-    def get_inputs_withholding_tax(self, contract_id, date_from, date_to):
-        date_month_now_from = date(date_from.year, date_from.month, 1)
-        date_month_next = date_month_now_from + relativedelta(months=1)
-        date_month_now_to = date(date_month_next.year, date_month_next.month, 1) - relativedelta(days=1)
-        withholding_tax_ids = self.env['hr.withholding.tax'].search([("contract_id", "=", contract_id.id),
-                                                                     ("deductions_rt_id.date", ">=", date_month_now_from),
-                                                                     ("deductions_rt_id.date", "<=", date_month_now_to),
-                                                                     ("state", "=", 'approved'),
-                                                                     ])
-        return withholding_tax_ids
 
     def get_inputs_loans_year_now(self, contract_id, date_from, date_to):
         date_init_year = date(date_from.year, 1, 1)
@@ -169,20 +172,78 @@ class HrPayslip(models.Model):
         loans_ids = self._cr.fetchall()
         return loans_ids
 
-    def get_inputs_hora_extra_year_now(self, contract_id, date_from, date_to):
+    def get_amount_transport_subsidy_year(self, contract_id, date_from, date_to):
+        count = 0
+        amount_transp = 0
         date_init_year = date(date_from.year, 1, 1)
         if contract_id.date_start <= date_init_year:
             date_init = date_init_year
         else:
             date_init = contract_id.date_start
+        date_end = date(date_init.year, date_init.month, 1) + relativedelta(months=1)
+        date_end = date_end - relativedelta(days=1)
 
-        self._cr.execute(''' SELECT i.name, i.code, h.amount, i.id FROM hr_extras h
+        while date_end <= date_to:
+
+            transport_subsidy_ids = self.env['hr.payroll_data'].search([("contract_id", "=", contract_id.id),
+                                                                         ("fecha_final", ">=",date_init),
+                                                                         ("fecha_final", "<=", date_end),
+                                                                         ])
+            if transport_subsidy_ids:
+                for t in transport_subsidy_ids:
+                    amount_transp += transport_subsidy_ids.auxilio_transporte
+                count += 1
+            else:
+                payslip = self.env['hr.payslip'].search([("contract_id", "=", contract_id.id),
+                                                                           ("date_from", ">=", date_init),
+                                                                           ("date_to", "<=", date_end),
+                                                                           ("type_payslip_id.name", "=", 'Nomina'),
+                                                                            ], limit=1)
+                if payslip:
+                    for slip in payslip:
+                        transport_subsidy_payslip = payslip.line_ids.search([("code", "=", 'SUBSTRAN'),("slip_id", "=", slip.id)], limit=1)
+                        if transport_subsidy_payslip:
+                            amount_transp += transport_subsidy_payslip.total
+                            count += 1
+                        else:
+                            amount_transp += 0
+                            count += 1
+
+                else:
+                    amount_transp += 0
+                    count += 1
+
+            date_init = date_init + relativedelta(months=1)
+            date_end = date(date_init.year, date_init.month, 1) + relativedelta(months=1)
+            date_end = date_end - relativedelta(days=1)
+
+        if count == 0:
+            amount_transp = amount_transp
+        else:
+            amount_transp = amount_transp / count
+
+        return amount_transp
+
+    def get_inputs_withholding_tax(self, contract_id, date_from, date_to):
+        date_month_now_from = date(date_from.year, date_from.month, 1)
+        date_month_next = date_month_now_from + relativedelta(months=1)
+        date_month_now_to = date(date_month_next.year, date_month_next.month, 1) - relativedelta(days=1)
+        withholding_tax_ids = self.env['hr.withholding.tax'].search([("contract_id", "=", contract_id.id),
+                                                                     ("deductions_rt_id.date", ">=", date_month_now_from),
+                                                                     ("deductions_rt_id.date", "<=", date_month_now_to),
+                                                                     ("state", "=", 'approved'),
+                                                                     ])
+        return withholding_tax_ids
+
+    def get_inputs_loans_fijos(self, contract_id):
+        self._cr.execute(''' SELECT i.name, i.code, h.loan_amount
+                                FROM hr_loan h
                                 INNER JOIN hr_payslip_input_type i ON i.id=h.input_id
-                                WHERE h.contract_id=%s AND h.state='approved'
-                                AND h.date BETWEEN %s AND %s
-                                ORDER BY i.code''',(contract_id.id, date_init, date_to))
-        horas_extras = self._cr.fetchall()
-        return horas_extras
+                                WHERE h.contract_id=%s AND h.state='approve'
+                                AND h.loan_fijo IS True
+                                ORDER BY i.code ''',(contract_id.id,))
+        loans_fijos_ids = self._cr.fetchall()
+        return loans_fijos_ids
 
     @api.model
     def get_inputs(self, contracts, date_from, date_to):
@@ -273,17 +334,97 @@ class HrPayslip(models.Model):
                         "name_input": nameh110,
                         "code_input": codeh110,
                     })
+            hora_extra_month_before = self.get_inputs_hora_extra_month_before(contract, date_from, date_to)
+            if hora_extra_month_before:
+                amounth25 = 0
+                inputh25_type_id = 0
+                amounth35 = 0
+                inputh35_type_id = 0
+                amounth75 = 0
+                inputh75_type_id = 0
+                amounthf75 = 0
+                inputhf75_type_id = 0
+                amounth110 = 0
+                inputh110_type_id = 0
+                for hora in horas_extras:
+                    if hora[1] == 'EXTRADIURNA':
+                        amounth25 = amounth25 + hora[2]
+                        inputh25_type_id = hora[3]
+                        nameh25 = hora[0]
+                        codeh25 = hora[1]
+                    if hora[1] == 'RECARGONOCTURNO':
+                        amounth35 = amounth35 + hora[2]
+                        inputh35_type_id = hora[3]
+                        nameh35 = hora[0]
+                        codeh35 = hora[1]
+                    if hora[1] == 'EXTRANOCTURNA':
+                        amounth75 = amounth75 + hora[2]
+                        inputh75_type_id = hora[3]
+                        nameh75 = hora[0]
+                        codeh75 = hora[1]
+                    if hora[1] == 'RECARGODIURNOFESTIVO':
+                        amounthf75 = amounthf75 + hora[2]
+                        inputhf75_type_id = hora[3]
+                        namehf75 = hora[0]
+                        codehf75 = hora[1]
+                    if hora[1] == 'RECARGONOCTURNOFESTIVO':
+                        amounth110 = amounth110 + hora[2]
+                        inputh110_type_id = hora[3]
+                        nameh110 = hora[0]
+                        codeh110 = hora[1]
+                if not amounth25 == 0:
+                    self.env['hr.payslip.input'].create({
+                        "sequence": 1,
+                        "amount": amounth25,
+                        "payslip_id": self.id,
+                        "input_type_id": inputh25_type_id,
+                        "code_input": 'EXTRADIURNA_ANT30',
+                        "name_input": 'Horas Extra Diurna (25%) Mes Anterior',
+                    })
+                if not amounth35 == 0:
+                    self.env['hr.payslip.input'].create({
+                        "sequence": 1,
+                        "amount": amounth35,
+                        "payslip_id": self.id,
+                        "input_type_id": inputh35_type_id,
+                        "code_input": 'RECARGONOCTURNO_ANT30',
+                        "name_input": 'Horas Recargo Nocturno (35%) Mes Anterior',
+                    })
+                if not amounth75 == 0:
+                    self.env['hr.payslip.input'].create({
+                        "sequence": 1,
+                        "amount": amounth75,
+                        "payslip_id": self.id,
+                        "input_type_id": inputh75_type_id,
+                        "code_input": 'EXTRANOCTURNA_ANT30',
+                        "name_input": 'Horas Extra Nocturna (75%) Mes Anterior',
+                    })
+                if not amounthf75 == 0:
+                    self.env['hr.payslip.input'].create({
+                        "sequence": 1,
+                        "amount": amounthf75,
+                        "payslip_id": self.id,
+                        "input_type_id": inputhf75_type_id,
+                        "code_input": 'RECARGODIURNOFESTIVO_ANT30',
+                        "name_input": 'Horas Recargo Diurno Festivo (75%) Mes Anterior',
+                    })
+                if not amounth110 == 0:
+                    self.env['hr.payslip.input'].create({
+                        "sequence": 1,
+                        "amount": amounth110,
+                        "payslip_id": self.id,
+                        "input_type_id": inputh110_type_id,
+                        "code_input": 'RECARGONOCTURNOFESTIVO_ANT30',
+                        "name_input": 'Horas Recargo Nocturno Festivo (110%) Mes Anterior',
+                    })
             horas_extras_12month_before = self.get_inputs_hora_extra_12month_before(contract, date_from, date_to)
             if horas_extras_12month_before:
-                hm12_date_end = date(date_to.year, date_to.month, 1) - relativedelta(days=1)
-                hm12_date_ini = hm12_date_end - relativedelta(months=11)
-                hm12_date_ini = date(hm12_date_ini.year, hm12_date_ini.month, 1)
+                hm12_date_ini = date_to - relativedelta(months=12)
                 if contract.date_start <= hm12_date_ini:
                     hm12_date_init = hm12_date_ini
                 else:
                     hm12_date_init = contract.date_start
-                total_month12 = days_between(hm12_date_init, hm12_date_end)
-                total_month12 = int(total_month12 / 30)
+                total_days12y = days_between(hm12_date_init, date_to)
                 counth25 = 0
                 amounth25 = 0
                 inputh25_type_id = 0
@@ -318,7 +459,7 @@ class HrPayslip(models.Model):
                         inputh110_type_id = hora[3]
                         nameh110 = hora[0]
                         codeh110 = hora[1]
-                    '''
+
                     if hora[1] == 'EXTRADIURNA':
                         counth25 = counth25 + 1
                         amounth25 = amounth25 + hora[2]
@@ -331,11 +472,11 @@ class HrPayslip(models.Model):
                         inputh75_type_id = hora[3]
                         nameh75 = hora[0]
                         codeh75 = hora[1]
-                    '''
+
                 if not amounth25 == 0:
                     self.env['hr.payslip.input'].create({
                         "sequence": 1,
-                        "amount": amounth25/ total_month12,
+                        "amount": (amounth25/total_days12y)*30,
                         "payslip_id": self.id,
                         "input_type_id": inputh25_type_id,
                         "code_input": 'EXTRADIURNA_PYEARS',
@@ -344,7 +485,7 @@ class HrPayslip(models.Model):
                 if not amounth35 == 0:
                     self.env['hr.payslip.input'].create({
                         "sequence": 1,
-                        "amount": amounth35 / total_month12,
+                        "amount": (amounth35/total_days12y)*30,
                         "payslip_id": self.id,
                         "input_type_id": inputh35_type_id,
                         "code_input": 'RECARGONOCTURNO_PYEARS',
@@ -353,7 +494,7 @@ class HrPayslip(models.Model):
                 if not amounth75 == 0:
                     self.env['hr.payslip.input'].create({
                         "sequence": 1,
-                        "amount": amounth75 / total_month12,
+                        "amount": (amounth75/total_days12y)*30,
                         "payslip_id": self.id,
                         "input_type_id": inputh75_type_id,
                         "code_input": 'EXTRANOCTURNA_PYEARS',
@@ -362,7 +503,7 @@ class HrPayslip(models.Model):
                 if not amounthf75 == 0:
                     self.env['hr.payslip.input'].create({
                         "sequence": 1,
-                        "amount": amounthf75 / total_month12,
+                        "amount": (amounthf75/total_days12y)*30,
                         "payslip_id": self.id,
                         "input_type_id": inputhf75_type_id,
                         "code_input": 'RECARGODIURNOFESTIVO_PYEARS',
@@ -371,7 +512,7 @@ class HrPayslip(models.Model):
                 if not amounth110 == 0:
                     self.env['hr.payslip.input'].create({
                         "sequence": 1,
-                        "amount": amounth110 / total_month12,
+                        "amount": (amounth110/total_days12y)*30,
                         "payslip_id": self.id,
                         "input_type_id": inputh110_type_id,
                         "code_input": 'RECARGONOCTURNOFESTIVO_PYEARS',
@@ -384,10 +525,7 @@ class HrPayslip(models.Model):
                     hdate_init = hdate_init_year
                 else:
                     hdate_init = contract.date_start
-                month_end = date(date_to.year, date_to.month, 1) + relativedelta(months=1)
-                month_end = month_end - relativedelta(days=1)
-                total_month = days_between(hdate_init, month_end)
-                total_month = int(total_month / 30)
+                total_days = days_between(hdate_init, date_to)
                 counth25 = 0
                 amounth25 = 0
                 inputh25_type_id = 0
@@ -437,7 +575,7 @@ class HrPayslip(models.Model):
                 if not amounth25 == 0:
                     self.env['hr.payslip.input'].create({
                         "sequence": 1,
-                        "amount": amounth25 / total_month,
+                        "amount": (amounth25/total_days)*30,
                         "payslip_id": self.id,
                         "input_type_id": inputh25_type_id,
                         "code_input": 'EXTRADIURNA_YEARS_NOW',
@@ -446,7 +584,7 @@ class HrPayslip(models.Model):
                 if not amounth35 == 0:
                     self.env['hr.payslip.input'].create({
                         "sequence": 1,
-                        "amount": amounth35 / total_month,
+                        "amount": (amounth35/total_days)*30,
                         "payslip_id": self.id,
                         "input_type_id": inputh35_type_id,
                         "code_input": 'RECARGONOCTURNO_YEARS_NOW',
@@ -455,7 +593,7 @@ class HrPayslip(models.Model):
                 if not amounth75 == 0:
                     self.env['hr.payslip.input'].create({
                         "sequence": 1,
-                        "amount": amounth75 / total_month,
+                        "amount": (amounth75/total_days)*30,
                         "payslip_id": self.id,
                         "input_type_id": inputh75_type_id,
                         "code_input": 'EXTRANOCTURNA_YEARS_NOW',
@@ -464,7 +602,7 @@ class HrPayslip(models.Model):
                 if not amounthf75 == 0:
                     self.env['hr.payslip.input'].create({
                         "sequence": 1,
-                        "amount": amounthf75 / total_month,
+                        "amount": (amounthf75/total_days)*30,
                         "payslip_id": self.id,
                         "input_type_id": inputhf75_type_id,
                         "code_input": 'RECARGODIURNOFESTIVO_YEARS_NOW',
@@ -473,7 +611,7 @@ class HrPayslip(models.Model):
                 if not amounth110 == 0:
                     self.env['hr.payslip.input'].create({
                         "sequence": 1,
-                        "amount": amounth110 / total_month,
+                        "amount": (amounth110/total_days)*30,
                         "payslip_id": self.id,
                         "input_type_id": inputh110_type_id,
                         "code_input": 'RECARGONOCTURNOFESTIVO_YEARS_NOW',
@@ -591,15 +729,12 @@ class HrPayslip(models.Model):
                     })
             inputs_loans_12month_before = self.get_inputs_loans_12month_before(contract, date_from, date_to)
             if inputs_loans_12month_before:
-                lm12_date_end = date(date_to.year, date_to.month, 1) - relativedelta(days=1)
-                lm12_date_ini = lm12_date_end - relativedelta(months=11)
-                lm12_date_ini = date(lm12_date_ini.year, lm12_date_ini.month, 1)
+                lm12_date_ini = date_to - relativedelta(months=12)
                 if contract.date_start <= lm12_date_ini:
                     lm12_date_init = lm12_date_ini
                 else:
                     lm12_date_init = contract.date_start
-                total_montl12 = days_between(lm12_date_init, lm12_date_end)
-                total_montl12 = int(total_montl12 / 30)
+                total_dayl12 = days_between(lm12_date_init, date_to)
                 countb = 0
                 amountb = 0
                 inputb_type_id = 0
@@ -611,7 +746,7 @@ class HrPayslip(models.Model):
                 if not amountb == 0:
                     self.env['hr.payslip.input'].create({
                         "sequence": 1,
-                        "amount": amountb/total_montl12,
+                        "amount": (amountb/total_dayl12)*30,
                         "payslip_id": self.id,
                         "input_type_id": inputb_type_id,
                         "code_input": 'BONIFICACION_PYEARS',
@@ -624,10 +759,7 @@ class HrPayslip(models.Model):
                     ldate_init = ldate_init_year
                 else:
                     ldate_init = contract.date_start
-                lmonth_end = date(date_to.year, date_to.month, 1) + relativedelta(months=1)
-                lmonth_end = lmonth_end - relativedelta(days=1)
-                total_month = days_between(ldate_init, lmonth_end)
-                total_month = int(total_month / 30)
+                ltotal_days = days_between(ldate_init, date_to)
                 countb = 0
                 amountb = 0
                 inputb_type_id = 0
@@ -639,12 +771,23 @@ class HrPayslip(models.Model):
                 if not amountb == 0:
                     self.env['hr.payslip.input'].create({
                         "sequence": 1,
-                        "amount": amountb/total_month,
+                        "amount": (amountb/ltotal_days)*30,
                         "payslip_id": self.id,
                         "input_type_id": inputb_type_id,
                         "code_input": 'BONIFICACION_YEARS_NOW',
                         "name_input": 'Bonificación Promedio Anual',
                     })
+            amount_transport_subsidy_pyear = self.get_amount_transport_subsidy_year(contract, date_from, date_to)
+            if amount_transport_subsidy_pyear and amount_transport_subsidy_pyear > 0 :
+                code_aux_transp = self.env['hr.payslip.input.type'].search([("code", "=", 'AUX_TRANSPORTE_PYEARS')], limit=1).id
+                self.env['hr.payslip.input'].create({
+                    "sequence": 1,
+                    "amount": amount_transport_subsidy_pyear,
+                    "payslip_id": self.id,
+                    "input_type_id": code_aux_transp if code_aux_transp else inputb_type_id,
+                    "code_input": 'AUX_TRANSPORTE_PYEARS',
+                    "name_input": 'Auxilio de Transporte Promedio Anual',
+                })
             if contract.retention_method == 'M1':
                 inputs_withholding_tax = self.get_inputs_withholding_tax(contract, date_from, date_to)
                 if inputs_withholding_tax:
@@ -814,6 +957,26 @@ class HrPayslip(models.Model):
             }
             res.append(attendances_year_total)
 
+            leave = self.env['hr.work.entry'].search([("date_start", ">=", self.date_from),
+                                                      ("date_stop", "<=", self.date_to),
+                                                      ("work_entry_type_id", "=", 6),
+                                                      ("employee_id", "=", contract.employee_id.id)])
+
+            for l in leave.leave_id:
+                total_days = l.number_of_days
+                total_hours = total_days * contract.resource_calendar_id.hours_per_day
+                work_entry_type = self.env['hr.work.entry.type'].search([("code", "=", 'TOTALAE')], limit=1)
+                totalae = {
+                    'sequence': work_entry_type.sequence,
+                    'work_entry_type_id': work_entry_type.id,
+                    'name': work_entry_type.code,
+                    'number_of_days': total_days,
+                    'number_of_hours': total_hours,
+                    # 'amount': total_hours * paid_amount / total_hours or 0,
+                    'amount': total_days * (paid_amount / 30) or 0,
+
+                }
+                res.append(totalae)
         return res
 
     def _get_payslip_lines(self):

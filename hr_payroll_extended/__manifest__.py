@@ -16,6 +16,7 @@
         'hr_holidays',
         'analytic',
         'hr_work_entry',
+        'hr_payroll_account',
         ],
     'description': '''
 
@@ -34,6 +35,7 @@
         'views/hr_withholding_tax_view.xml',
         'views/hr_deduction_concepts_view.xml',
         'views/hr_deductions_rt_views.xml',
+        'views/hr_payroll_data_views.xml',
         # 'views/hr_payroll_structure_view.xml',
         # 'views/hr_contract_view.xml',
         # 'views/report_contributionregistercust.xml',

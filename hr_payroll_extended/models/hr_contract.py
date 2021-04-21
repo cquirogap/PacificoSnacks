@@ -18,6 +18,9 @@ import pytz
 import logging
 
 _logger = logging.getLogger(__name__)
+
+def days360(s, e):
+    return ( ((e.year * 12 + e.month) * 30 + e.day) - ((s.year * 12 + s.month) * 30 + s.day))
            
 class HrContract(models.Model):
     """
@@ -37,33 +40,39 @@ class HrContract(models.Model):
     
 
     def get_accumulated_vacation(self):
-        date_from = datetime.combine(self.date_start, datetime.min.time())
-        if self.date_end != False and self.date_end <= date.today():
-            date_to = datetime.combine(self.date_end, datetime.max.time())
-        else:
-            date_to = datetime.combine(date.today(), datetime.max.time())
-        time_worked = self.env['hr.leave']._get_number_of_days(date_from, date_to, self.employee_id.id)['days']
-        if float(time_worked) >= 30:
-            accumulated_vacation = (time_worked/30) * 1.25
-        else:
-            accumulated_vacation = 0
-        self.accumulated_vacation = accumulated_vacation
+        for record in self:
+            date_from = datetime.combine(record.date_start, datetime.min.time())
+            if record.date_end != False and record.date_end <= date.today():
+                date_to = datetime.combine(record.date_end, datetime.max.time())
+            else:
+                date_to = datetime.combine(date.today(), datetime.max.time())
+           # time_worked = self.env['hr.leave']._get_number_of_days(date_from, date_to, self.employee_id.id)['days']
+           # time_worked = (date_to - date_from).days
+            time_worked = days360( date_from ,date_to)
+            time_worked = time_worked+1
+            if float(time_worked) >= 30:
+                accumulated_vacation = (time_worked/30) * 1.25
+            else:
+                accumulated_vacation = 0
+            record.accumulated_vacation = accumulated_vacation
 
     def get_vacation_used(self):
-        # El ('holiday_status_id', '=', 6) corresponde al tipo de ausencia de vacaciones, en caso de modificar el registro se debe cambiar el numero a evaluar
-        vacations = self.env['hr.leave'].search([('employee_id', '=', self.employee_id.id), ('holiday_status_id', '=', 6), ('state', '=', 'validate')])
-        vacation_used = 0
-        for vacation in vacations:
-            vacation_used = vacation_used + vacation.number_of_days
+        for record in self:
+            vacations = record.env['hr.leave'].search([('employee_id', '=', record.employee_id.id), ('holiday_status_id', '=', 6), ('state', '=', 'validate')])
+            vacation_used = 0
+            for vacation in vacations:
+                vacation_used = vacation_used + vacation.number_of_days
 
-        self.vacation_used = vacation_used + self.vacation_initial
+            record.vacation_used = vacation_used + record.vacation_initial
 
     def get_vacations_available(self):
-        self.vacations_available = int(self.accumulated_vacation) - self.vacation_used
+        for record in self:
+            record.vacations_available = int(record.accumulated_vacation) - record.vacation_used
 
     def get_history(self):
-        # El ('holiday_status_id', '=', 6) corresponde al tipo de ausencia de vacaciones, en caso de modificar el registro se debe cambiar el numero a evaluar
-        self.vacations_history = self.env['hr.leave'].search([('employee_id', '=', self.employee_id.id), ('holiday_status_id', '=', 6), ('state', '=', 'validate')])
+        for record in self:
+            record.vacations_history = record.env['hr.leave'].search([('employee_id', '=', record.employee_id.id), ('holiday_status_id', '=', 6), ('state', '=', 'validate')])
+
 
     def get_all_structures(self):
         """

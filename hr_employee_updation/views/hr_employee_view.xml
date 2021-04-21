@@ -11,6 +11,9 @@
             <field name="model">hr.employee</field>
             <field name="inherit_id" ref="hr.view_employee_form"/>
             <field name="arch" type="xml">
+                <xpath expr="//field[@name='work_location']" position="after">
+                    <field name="partner_id"/>
+                </xpath>
                 <xpath expr="//page[@name='personal_information']/group" position="after">
                     <group name="fam_ids" colspan="4" string="Dependence Details">
                         <field name="fam_ids">
