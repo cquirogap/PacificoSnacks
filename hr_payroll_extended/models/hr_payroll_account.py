@@ -142,6 +142,10 @@ class HrPayslip(models.Model):
             partner = line.slip_id.contract_id.entity_ids.search([("entity", "=", 'ccf')], limit=1).partner_id.id
         elif line.code == 'SALUDEMPRESA':
             partner = line.slip_id.contract_id.entity_ids.search([("entity", "=", 'eps')], limit=1).partner_id.id
+        elif line.code == 'SALUDEMPLEADO':
+            partner = line.slip_id.contract_id.entity_ids.search([("entity", "=", 'eps')], limit=1).partner_id.id
+        elif line.code == 'PENSIONEMPLEADO':
+            partner = line.slip_id.contract_id.entity_ids.search([("entity", "=", 'afp')], limit=1).partner_id.id
         elif line.code == 'PENSIONEMPRESA':
             partner = line.slip_id.contract_id.entity_ids.search([("entity", "=", 'afp')], limit=1).partner_id.id
         elif line.code == 'CESANTIAS':
