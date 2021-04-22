@@ -25,7 +25,7 @@
 							<field name="request_date_from" />
 							<field name="request_date_to" />
 							<field name="number_of_days" />
-							<field name="total_number_of_days" />
+							<field name="total_number_of_daysa" />
 							<field name="amount_vacations" />
 						</tree>
 					</field>
