@@ -75,6 +75,8 @@ class VacationsReport(models.TransientModel):
         title_head.set_font_size(10)
         title_head.set_font_color('black')
         format_date = wb.add_format({'num_format': 'mm/dd/yyyy'})
+        format_number = wb.add_format({'num_format': '#,##0.00'})
+        format_number1 = wb.add_format({'num_format': '#,##0.00', 'fg_color': '#33CCCC', 'border': 1})
 
         ws.write(0, 1, 'PACIFICO SNACKS', title_head)
         ws.write(1, 10, date_creation, format_date)
@@ -104,8 +106,8 @@ class VacationsReport(models.TransientModel):
             ws.write(fila, 2, '') if not cont.date_start else ws.write(fila, 2, cont.date_start, format_date)
             dias_calculo = date_creation - cont.date_start
             dias_lab = dias_calculo.days
-            ws.write(fila, 3, '') if not dias_lab else ws.write(fila, 3, dias_lab)
-            ws.write(fila, 4, '') if not cont.vacations_available else ws.write(fila, 4, cont.vacations_available)
+            ws.write(fila, 3, 0) if not dias_lab else ws.write(fila, 3, dias_lab)
+            ws.write(fila, 4, 0) if not cont.vacations_available else ws.write(fila, 4, cont.vacations_available)
 
             total_dias_habiles = 0
             total_dias_no_habiles = 0
@@ -120,16 +122,15 @@ class VacationsReport(models.TransientModel):
                     dias_totales = ((vac.request_date_to - vac.request_date_from).days) + 1
                     dias_no_habiles = dias_totales - vac.number_of_days
 
-                    ws.write(fila, 7, '') if not vac.name else ws.write(fila, 7, vac.number_of_days)
+                    ws.write(fila, 7, 0) if not vac.name else ws.write(fila, 7, vac.number_of_days)
                     total_dias_habiles += int(vac.number_of_days)
-                    ws.write(fila, 8, '') if not vac.name else ws.write(fila, 8, dias_no_habiles)
+                    ws.write(fila, 8, 0) if not vac.name else ws.write(fila, 8, dias_no_habiles)
                     total_dias_no_habiles += int(dias_no_habiles)
-                    ws.write(fila, 9, '') if not vac.name else ws.write(fila, 9, dias_totales)
+                    ws.write(fila, 9, 0) if not vac.name else ws.write(fila, 9, dias_totales)
                     total_dias += int(dias_totales)
-                    ws.write(fila, 10, '') if not vac.name else ws.write(fila, 10, 0)
-                    #ws.write(fila, 10, '') if not vac.name else ws.write(fila, 10, vac.amount_vacations)
-                    #total_valor_pagado += vac.amount_vacations
-                    total_valor_pagado += 0
+                    ws.write(fila, 10, 0) if not vac.name else ws.write(fila, 10, vac.amount_vacations, format_number)
+                    total_valor_pagado += vac.amount_vacations
+
 
                     fila += 1
 
@@ -143,10 +144,10 @@ class VacationsReport(models.TransientModel):
             ws.write(fila, 5, '', title_head)
             ws.write(fila, 6, 'TOTAL', title_head)
 
-            ws.write(fila, 7, '') if not total_dias_habiles else ws.write(fila, 7, total_dias_habiles)
-            ws.write(fila, 8, '') if not total_dias_no_habiles else ws.write(fila, 8, total_dias_no_habiles)
-            ws.write(fila, 9, '') if not total_dias else ws.write(fila, 9, total_dias)
-            ws.write(fila, 10, '') if not total_dias else ws.write(fila, 10, total_valor_pagado)
+            ws.write(fila, 7, 0, format_number1) if not total_dias_habiles else ws.write(fila, 7, total_dias_habiles, format_number1)
+            ws.write(fila, 8, 0, format_number1) if not total_dias_no_habiles else ws.write(fila, 8, total_dias_no_habiles, format_number1)
+            ws.write(fila, 9, 0, format_number1), format_number1 if not total_dias else ws.write(fila, 9, total_dias, format_number1)
+            ws.write(fila, 10, 0,format_number1) if not total_dias else ws.write(fila, 10, total_valor_pagado, format_number1)
             fila += 1
             ws.write(fila, 0, '')
             fila += 1
