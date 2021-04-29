@@ -29,6 +29,9 @@ def days_between(start_date, end_date):
     res = divmod(e360 - s360, 30)
     return ((res[0] * 30) + res[1]) or 0
 
+def days360(s, e):
+    return ( ((e.year * 12 + e.month) * 30 + e.day) - ((s.year * 12 + s.month) * 30 + s.day))
+
            
 class HrPayslip(models.Model):
     _inherit = 'hr.payslip'
@@ -424,7 +427,8 @@ class HrPayslip(models.Model):
                     hm12_date_init = hm12_date_ini
                 else:
                     hm12_date_init = contract.date_start
-                total_days12y = days_between(hm12_date_init, date_to)
+                #total_days12y = days_between(hm12_date_init, date_to)
+                total_days12y = days360(hm12_date_init, date_to)
                 counth25 = 0
                 amounth25 = 0
                 inputh25_type_id = 0
@@ -525,7 +529,8 @@ class HrPayslip(models.Model):
                     hdate_init = hdate_init_year
                 else:
                     hdate_init = contract.date_start
-                total_days = days_between(hdate_init, date_to)
+                #total_days = days_between(hdate_init, date_to)
+                total_days = days360(hdate_init, date_to)
                 counth25 = 0
                 amounth25 = 0
                 inputh25_type_id = 0
@@ -734,7 +739,8 @@ class HrPayslip(models.Model):
                     lm12_date_init = lm12_date_ini
                 else:
                     lm12_date_init = contract.date_start
-                total_dayl12 = days_between(lm12_date_init, date_to)
+                #total_dayl12 = days_between(lm12_date_init, date_to)
+                total_dayl12 = days360(lm12_date_init, date_to)
                 countb = 0
                 amountb = 0
                 inputb_type_id = 0
@@ -759,7 +765,8 @@ class HrPayslip(models.Model):
                     ldate_init = ldate_init_year
                 else:
                     ldate_init = contract.date_start
-                ltotal_days = days_between(ldate_init, date_to)
+                #ltotal_days = days_between(ldate_init, date_to)
+                ltotal_days = days360(ldate_init, date_to)
                 countb = 0
                 amountb = 0
                 inputb_type_id = 0
@@ -923,7 +930,8 @@ class HrPayslip(models.Model):
                     'amount': r_amount
                 }
                 res.append(attendance_line)
-            total_days = days_between(self.date_from, self.date_to)
+            #total_days = days_between(self.date_from, self.date_to)
+            total_days = days360(self.date_from, self.date_to)
             total_hours = total_days*contract.resource_calendar_id.hours_per_day
             work_entry_type = self.env['hr.work.entry.type'].search([("code", "=", 'TOTALDAYS')], limit=1)
             attendances_total = {
@@ -942,7 +950,8 @@ class HrPayslip(models.Model):
                 date_init = date_init_year
             else:
                 date_init = contract.date_start
-            total_year_days = days_between(date_init, self.date_to)
+            #total_year_days = days_between(date_init, self.date_to)
+            total_year_days = days360(date_init, self.date_to)
             total_year_hours = total_year_days * contract.resource_calendar_id.hours_per_day
             work_entry_type = self.env['hr.work.entry.type'].search([("code", "=", 'TOTALDAYSYEARS')], limit=1)
             attendances_year_total = {
