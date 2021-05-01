@@ -155,6 +155,23 @@ class HrPayslip(models.Model):
         else:
             partner = line.employee_id.partner_id.id
 
+        if line.salary_rule_id.analytic_account_id.id:
+            if line.salary_rule_id.analytic_account_id.tag_id.id:
+                analytic_tag_ids = (4, line.salary_rule_id.analytic_account_id.tag_id.id)
+            else:
+                raise ValidationError(_('La cuenta analitica ['+str(line.salary_rule_id.analytic_account_id.code)+
+                                        ' '+str(line.salary_rule_id.analytic_account_id.name)+'] no tiene etiqueta analitica'))
+        else:
+            if line.slip_id.contract_id.analytic_account_id.id:
+                if line.slip_id.contract_id.analytic_account_id.tag_id.id:
+                    analytic_tag_ids = (4, line.slip_id.contract_id.analytic_account_id.tag_id.id)
+                else:
+                    raise ValidationError(_('La cuenta analítica [' + str(line.slip_id.contract_id.analytic_account_id.code)
+                                            +' '+ str(line.slip_id.contract_id.analytic_account_id.name)
+                                            + '] no tiene etiqueta analítica asignada del contrato '+ line.slip_id.contract_id.name))
+            else:
+                raise ValidationError(_('El empleado ' + line.slip_id.contract_id.employee_id.name+' no tiene asignada una cuenta analítica en su contrato'))
+
         return {
             'name': line.name,
             'partner_id': partner,
@@ -164,5 +181,5 @@ class HrPayslip(models.Model):
             'debit': debit,
             'credit': credit,
             'analytic_account_id': line.salary_rule_id.analytic_account_id.id or line.slip_id.contract_id.analytic_account_id.id,
-            'analytic_tag_ids': (4, line.slip_id.contract_id.analytic_account_id.tag_id.id)
+            'analytic_tag_ids': analytic_tag_ids
         }

@@ -139,6 +139,20 @@ class HrPayslip(models.Model):
         loans_ids = self._cr.fetchall()
         return loans_ids
 
+    def get_inputs_net_salary(self, contract_id, date_from, date_to):
+        date_before_from = date(date_from.year, date_from.month, 1)
+        date_before_to = date(date_from.year, date_from.month, 15)
+        payslip = self.env['hr.payslip'].search([("contract_id", "=", contract_id.id),
+                                                 ("date_from", "=", date_before_from),
+                                                 ("date_to", "=", date_before_to),
+                                                 ("type_payslip_id.name", "=", 'Nomina'),
+                                                 ("state", "=", 'done')], limit=1)
+        if payslip.id :
+            net_salary = self.env['hr.payslip.line'].search([("code", "=", 'NET'),("slip_id.id", "=", payslip.id)], limit=1)
+        else:
+            net_salary = False
+        return net_salary
+
     def get_inputs_loans_12month_before(self, contract_id, date_from, date_to):
         lm12_date_ini = date_to - relativedelta(months=12)
 
@@ -701,6 +715,20 @@ class HrPayslip(models.Model):
                         "name_input": 'Descuento Mes Actual',
                     })
                 """
+            #---------------
+            get_inputs_net_salary = self.get_inputs_net_salary(contract, date_from, date_to)
+            if get_inputs_net_salary and date_from.day == 16:
+                net_type = self.env['hr.payslip.input.type'].search([("code", "=", 'NET115')], limit=1).id
+                if net_type:
+                    self.env['hr.payslip.input'].create({
+                        "sequence": 1,
+                        "amount": get_inputs_net_salary.total,
+                        "payslip_id": self.id,
+                        "input_type_id": net_type,
+                        "code_input": 'NET115',
+                        "name_input": 'Salario Neto (1 Quincena)',
+                    })
+            #-------------------
             loans_month_before_ids = self.get_inputs_loans_month_before(contract, date_from, date_to)
             if loans_month_before_ids:
                 amountb = 0
@@ -756,7 +784,7 @@ class HrPayslip(models.Model):
                         "payslip_id": self.id,
                         "input_type_id": inputb_type_id,
                         "code_input": 'BONIFICACION_PYEARS',
-                        "name_input": 'Bonificación Promedio',
+                        "name_input": 'Bonificación Promedio (12M atras)',
                     })
             loans_year_now = self.get_inputs_loans_year_now(contract, date_from, date_to)
             if loans_year_now:
