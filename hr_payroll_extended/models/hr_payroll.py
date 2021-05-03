@@ -148,7 +148,7 @@ class HrPayslip(models.Model):
                                                  ("type_payslip_id.name", "=", 'Nomina'),
                                                  ("state", "=", 'done')], limit=1)
         if payslip.id :
-            net_salary = self.env['hr.payslip.line'].search([("code", "=", 'NET'),("slip_id.id", "=", payslip.id)], limit=1)
+            net_salary = self.env['hr.payslip.line'].search([("code", "=", 'GROSS'),("slip_id.id", "=", payslip.id)], limit=1)
         else:
             net_salary = False
         return net_salary
@@ -726,7 +726,7 @@ class HrPayslip(models.Model):
                         "payslip_id": self.id,
                         "input_type_id": net_type,
                         "code_input": 'NET115',
-                        "name_input": 'Salario Neto (1 Quincena)',
+                        "name_input": 'Total Ingresos (1 Quincena)',
                     })
             #-------------------
             loans_month_before_ids = self.get_inputs_loans_month_before(contract, date_from, date_to)
