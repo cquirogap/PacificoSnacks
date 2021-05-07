@@ -9,6 +9,8 @@ class hr_deductions_rt (models.Model):
     date = fields.Date(string="Fecha", required='True', default=fields.Date.today())
     concept = fields.Many2one('hr_deduction_concepts', string='Concepto')
     amount = fields.Integer(default=1, string="Monto")
+    deductions_id = fields.Many2one('hr.withholding.tax', string="Deduciones")
+    #loan_id = fields.Many2one('hr.loan', string="Loan Ref.", help="Loan")
 
 
 

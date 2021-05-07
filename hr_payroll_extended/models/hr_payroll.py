@@ -29,6 +29,9 @@ def days_between(start_date, end_date):
     res = divmod(e360 - s360, 30)
     return ((res[0] * 30) + res[1]) or 0
 
+def days360(s, e):
+    return ( ((e.year * 12 + e.month) * 30 + e.day) - ((s.year * 12 + s.month) * 30 + s.day))
+
            
 class HrPayslip(models.Model):
     _inherit = 'hr.payslip'
@@ -136,6 +139,20 @@ class HrPayslip(models.Model):
         loans_ids = self._cr.fetchall()
         return loans_ids
 
+    def get_inputs_total_ingreso(self, contract_id, date_from, date_to):
+        date_before_from = date(date_from.year, date_from.month, 1)
+        date_before_to = date(date_from.year, date_from.month, 15)
+        payslip = self.env['hr.payslip'].search([("contract_id", "=", contract_id.id),
+                                                 ("date_from", "=", date_before_from),
+                                                 ("date_to", "=", date_before_to),
+                                                 ("type_payslip_id.name", "=", 'Nomina'),
+                                                 ("state", "=", 'done')], limit=1)
+        if payslip.id :
+            total_ingreso = self.env['hr.payslip.line'].search([("code", "=", 'GROSS'),("slip_id.id", "=", payslip.id)], limit=1)
+        else:
+            total_ingreso = False
+        return total_ingreso
+
     def get_inputs_loans_12month_before(self, contract_id, date_from, date_to):
         lm12_date_ini = date_to - relativedelta(months=12)
 
@@ -232,7 +249,8 @@ class HrPayslip(models.Model):
                                                                      ("deductions_rt_id.date", ">=", date_month_now_from),
                                                                      ("deductions_rt_id.date", "<=", date_month_now_to),
                                                                      ("state", "=", 'approved'),
-                                                                     ])
+                                                                     ], limit=1)
+
         return withholding_tax_ids
 
     def get_inputs_loans_fijos(self, contract_id):
@@ -424,7 +442,8 @@ class HrPayslip(models.Model):
                     hm12_date_init = hm12_date_ini
                 else:
                     hm12_date_init = contract.date_start
-                total_days12y = days_between(hm12_date_init, date_to)
+                #total_days12y = days_between(hm12_date_init, date_to)
+                total_days12y = days360(hm12_date_init, date_to)
                 counth25 = 0
                 amounth25 = 0
                 inputh25_type_id = 0
@@ -525,7 +544,8 @@ class HrPayslip(models.Model):
                     hdate_init = hdate_init_year
                 else:
                     hdate_init = contract.date_start
-                total_days = days_between(hdate_init, date_to)
+                #total_days = days_between(hdate_init, date_to)
+                total_days = days360(hdate_init, date_to)
                 counth25 = 0
                 amounth25 = 0
                 inputh25_type_id = 0
@@ -696,6 +716,20 @@ class HrPayslip(models.Model):
                         "name_input": 'Descuento Mes Actual',
                     })
                 """
+            #---------------
+            get_inputs_total_ingreso = self.get_inputs_total_ingreso(contract, date_from, date_to)
+            if get_inputs_total_ingreso and date_from.day == 16:
+                total_ingreso_type = self.env['hr.payslip.input.type'].search([("code", "=", 'NET115')], limit=1).id
+                if total_ingreso_type:
+                    self.env['hr.payslip.input'].create({
+                        "sequence": 1,
+                        "amount": get_inputs_total_ingreso.total,
+                        "payslip_id": self.id,
+                        "input_type_id": total_ingreso_type,
+                        "code_input": 'NET115',
+                        "name_input": 'Total Ingresos (1 Quincena)',
+                    })
+            #-------------------
             loans_month_before_ids = self.get_inputs_loans_month_before(contract, date_from, date_to)
             if loans_month_before_ids:
                 amountb = 0
@@ -734,7 +768,8 @@ class HrPayslip(models.Model):
                     lm12_date_init = lm12_date_ini
                 else:
                     lm12_date_init = contract.date_start
-                total_dayl12 = days_between(lm12_date_init, date_to)
+                #total_dayl12 = days_between(lm12_date_init, date_to)
+                total_dayl12 = days360(lm12_date_init, date_to)
                 countb = 0
                 amountb = 0
                 inputb_type_id = 0
@@ -750,7 +785,7 @@ class HrPayslip(models.Model):
                         "payslip_id": self.id,
                         "input_type_id": inputb_type_id,
                         "code_input": 'BONIFICACION_PYEARS',
-                        "name_input": 'Bonificación Promedio',
+                        "name_input": 'Bonificación Promedio (12M atras)',
                     })
             loans_year_now = self.get_inputs_loans_year_now(contract, date_from, date_to)
             if loans_year_now:
@@ -759,7 +794,8 @@ class HrPayslip(models.Model):
                     ldate_init = ldate_init_year
                 else:
                     ldate_init = contract.date_start
-                ltotal_days = days_between(ldate_init, date_to)
+                #ltotal_days = days_between(ldate_init, date_to)
+                ltotal_days = days360(ldate_init, date_to)
                 countb = 0
                 amountb = 0
                 inputb_type_id = 0
@@ -790,9 +826,14 @@ class HrPayslip(models.Model):
                 })
             if contract.retention_method == 'M1':
                 inputs_withholding_tax = self.get_inputs_withholding_tax(contract, date_from, date_to)
-                if inputs_withholding_tax:
+                date_month_now_from = date(date_from.year, date_from.month, 1)
+                date_month_next = date_month_now_from + relativedelta(months=1)
+                date_month_now_to = date(date_month_next.year, date_month_next.month, 1) - relativedelta(days=1)
+                item_tax = inputs_withholding_tax.deductions_rt_id.search([("deductions_id", "=", inputs_withholding_tax.id),
+                                                                        '&', ("date", ">=", date_month_now_from),("date", "<=", date_month_now_to)])
+                if item_tax:
                    amount_rtf = 0
-                   for d in inputs_withholding_tax.deductions_rt_id:
+                   for d in item_tax:
                        amount_rtf = amount_rtf + d.amount
                    self.env['hr.payslip.input'].create({
                        "sequence": 1,
@@ -879,51 +920,64 @@ class HrPayslip(models.Model):
             biggest_work = work_hours_ordered[-1][0] if work_hours_ordered else 0
             add_days_rounding = 0
             print ('-------444', work_hours_ordered, work_hours, total_hours)
-            for work_entry_type_id, hours in work_hours_ordered:
-                work_entry_type = self.env['hr.work.entry.type'].browse(work_entry_type_id)
-                is_paid = work_entry_type_id not in unpaid_work_entry_types
-                calendar = contract.resource_calendar_id
-                print ('-------', hours)
-                days = round(hours / calendar.hours_per_day, 5) if calendar.hours_per_day else 0
-                if work_entry_type_id == biggest_work:
-                    days += add_days_rounding
-                day_rounded = self._round_days(work_entry_type, days)
-                add_days_rounding += (days - day_rounded)
-                # El ('work_entry_type_id', '=', 6) corresponde al tipo de entrada "Ausencias por Enfermedad", en caso de modificar el registro se debe cambiar el numero a evaluar
-                # El ('work_entry_type_id', '=', 10) corresponde al tipo de entrada "Total Ausencias por Enfermedad", en caso de modificar el registro se debe cambiar el numero a evaluar
-                if work_entry_type_id == 6 or work_entry_type_id == 10 :
-                    if day_rounded >= 1 and day_rounded < 4:
-                            r_amount = (((paid_amount_ant) * absence_rate_2D) / 100)
-                            if r_amount >= wage_min:
-                               r_amount = r_amount * day_rounded
-                            else:
-                               r_amount = (wage_min/30) * day_rounded
-                    elif day_rounded >= 4 and day_rounded <= 90:
-                            r_amount = (((paid_amount_ant) * absence_rate_90D) / 100)
-                            if r_amount >= wage_min:
-                               r_amount = r_amount * day_rounded
-                            else:
-                               r_amount = (wage_min/30) * day_rounded
-                    elif day_rounded >= 91:
-                            r_amount = (((paid_amount_ant) * absence_rate_M91D) / 100)
-                            if r_amount >= wage_min:
-                               r_amount = r_amount * day_rounded
-                            else:
-                               r_amount = (wage_min/30) * day_rounded
-                else:
-                    r_amount = day_rounded * (paid_amount_ant / 30) if is_paid else 0
+            if self.date_from != self.date_to:
+                for work_entry_type_id, hours in work_hours_ordered:
+                    work_entry_type = self.env['hr.work.entry.type'].browse(work_entry_type_id)
+                    is_paid = work_entry_type_id not in unpaid_work_entry_types
+                    calendar = contract.resource_calendar_id
+                    print ('-------', hours)
+                    days = round(hours / calendar.hours_per_day, 5) if calendar.hours_per_day else 0
+                    if work_entry_type_id == biggest_work:
+                        days += add_days_rounding
+                    day_rounded = self._round_days(work_entry_type, days)
+                    add_days_rounding += (days - day_rounded)
+                    # El ('work_entry_type_id', '=', 6) corresponde al tipo de entrada "Ausencias por Enfermedad", en caso de modificar el registro se debe cambiar el numero a evaluar
+                    # El ('work_entry_type_id', '=', 10) corresponde al tipo de entrada "Total Ausencias por Enfermedad", en caso de modificar el registro se debe cambiar el numero a evaluar
+                    if work_entry_type_id == 6 or work_entry_type_id == 10 :
+                        if day_rounded >= 1 and day_rounded < 4:
+                                r_amount = (((paid_amount_ant) * absence_rate_2D) / 100)
+                                if r_amount >= wage_min:
+                                   r_amount = r_amount * day_rounded
+                                else:
+                                   r_amount = (wage_min/30) * day_rounded
+                        elif day_rounded >= 4 and day_rounded <= 90:
+                                r_amount = (((paid_amount_ant) * absence_rate_90D) / 100)
+                                if r_amount >= wage_min:
+                                   r_amount = r_amount * day_rounded
+                                else:
+                                   r_amount = (wage_min/30) * day_rounded
+                        elif day_rounded >= 91:
+                                r_amount = (((paid_amount_ant) * absence_rate_M91D) / 100)
+                                if r_amount >= wage_min:
+                                   r_amount = r_amount * day_rounded
+                                else:
+                                   r_amount = (wage_min/30) * day_rounded
+                    else:
+                        r_amount = day_rounded * (paid_amount_ant / 30) if is_paid else 0
 
+                    attendance_line = {
+                        'sequence': work_entry_type.sequence,
+                        'work_entry_type_id': work_entry_type_id,
+                        'name': work_entry_type.code,
+                        'number_of_days': day_rounded,
+                        'number_of_hours': hours,
+                       #'amount': hours * paid_amount / total_hours if is_paid else 0,
+                        'amount': r_amount
+                    }
+                    res.append(attendance_line)
+            else:
                 attendance_line = {
-                    'sequence': work_entry_type.sequence,
-                    'work_entry_type_id': work_entry_type_id,
-                    'name': work_entry_type.code,
-                    'number_of_days': day_rounded,
-                    'number_of_hours': hours,
-                   #'amount': hours * paid_amount / total_hours if is_paid else 0,
-                    'amount': r_amount
+                    'sequence': 25,
+                    'work_entry_type_id': 1,
+                    'name': 'WORK100',
+                    'number_of_days': 0,
+                    'number_of_hours': 0,
+                    'amount': 0
                 }
                 res.append(attendance_line)
-            total_days = days_between(self.date_from, self.date_to)
+
+            #total_days = days_between(self.date_from, self.date_to)
+            total_days = days360(self.date_from, self.date_to)
             total_hours = total_days*contract.resource_calendar_id.hours_per_day
             work_entry_type = self.env['hr.work.entry.type'].search([("code", "=", 'TOTALDAYS')], limit=1)
             attendances_total = {
@@ -942,7 +996,8 @@ class HrPayslip(models.Model):
                 date_init = date_init_year
             else:
                 date_init = contract.date_start
-            total_year_days = days_between(date_init, self.date_to)
+            #total_year_days = days_between(date_init, self.date_to)
+            total_year_days = days360(date_init, self.date_to)
             total_year_hours = total_year_days * contract.resource_calendar_id.hours_per_day
             work_entry_type = self.env['hr.work.entry.type'].search([("code", "=", 'TOTALDAYSYEARS')], limit=1)
             attendances_year_total = {

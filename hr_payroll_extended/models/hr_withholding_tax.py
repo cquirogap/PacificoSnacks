@@ -18,7 +18,8 @@ class Hr_withholding_tax(models.Model):
     employee_id = fields.Many2one('hr.employee', string='Empleado', track_visibility='onchange', readonly=True, states={'draft': [('readonly', False)]})
     contract_id = fields.Many2one('hr.contract', string='Contrato', track_visibility='onchange')
     input_id = fields.Many2one('hr.payslip.input.type', string='Input', track_visibility='onchange', readonly=True, states={'draft': [('readonly', False)]})
-    deductions_rt_id = fields.Many2many('hr_deductions_rt', string='Deducciones')
+    deductions_rt_id = fields.One2many('hr_deductions_rt', 'deductions_id', string='Deducciones')
+    #loan_lines = fields.One2many('hr.loan.line', 'loan_id', string="Loan Line", index=True)
 
 
     _sql_constraints = [
