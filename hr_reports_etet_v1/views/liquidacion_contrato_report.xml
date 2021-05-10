@@ -5,7 +5,7 @@
         <report
                 id="liquidacion_contrato_report"
                 model="hr.payslip"
-                string="Liquidacion"
+                string="Liquidacion de Contrato"
                 name="hr_reports_etet_v1.liquidacion_contrato_report"
                 report_type="qweb-pdf"/>
 
@@ -13,7 +13,8 @@
         <t t-call="web.html_container">
         <t t-foreach="docs" t-as="doc">
             <t t-call="web.basic_layout">
-                <t t-if="doc.type_payslip_id == 'Liquidacion'">
+                <t t-if="doc.type_payslip_id.name == 'Liquidación de Contrato'">
+
                     <div class="page">
                     <div class="page" style="margin-left: 5%; margin-right: 5%; margin-top: 9%">
                         <table style="width:100%; margin-right:25%" add="small">
