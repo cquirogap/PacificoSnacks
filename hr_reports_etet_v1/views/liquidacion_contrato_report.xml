@@ -499,7 +499,7 @@
                                                         <t t-set="descuentos_nombre" t-value="line_ids.name"/>
                                                         <t t-set="descuentos_valor" t-value="line_ids.total"/>
                                                     </t>
-                                                    <t t-if="pensionempleado_valor != 0">
+                                                    <t t-if="descuentos_valor != 0">
 
 
 
