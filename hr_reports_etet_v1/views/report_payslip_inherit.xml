@@ -90,7 +90,7 @@
                                 <th style="width:15%">Deducciones</th>
                             </tr>
                         </thead>
-                        <tbody style="height:10%; font-size:9px">
+                        <tbody style="height:10%; font-size:15px">
                             <t t-set="salario_nombre" t-value=""></t>
                             <t t-set="salario_valor" t-value="0"></t>
                             <t t-foreach="o.line_ids.filtered(lambda x: x.code == 'SALARIO')" t-as="line_ids">
@@ -442,7 +442,7 @@
 
                     </table>
                     <table  add="small" style="width:100%">
-                        <tr style="height:10%; font-size:9px">
+                        <tr style="height:10%; font-size:15px">
                             <td style="width:50%">Observaciones: <p><span t-field="o.observaciones"/></p>
                             </td>
                             <td style="width:50%">
@@ -476,7 +476,7 @@
                         </tr>
                     </table>
                     <table add="small" style="width:100%">
-                        <tr style="height:10%; font-size:9px">
+                        <tr style="height:10%; font-size:15px">
 
                             <td style="width:50%">
                                 <table style="width:100%">

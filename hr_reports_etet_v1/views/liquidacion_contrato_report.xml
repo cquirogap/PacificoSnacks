@@ -491,7 +491,34 @@
                                                     </t>
 
                                             </tr>
-                                            <t t-set="t_deducciones" t-value="pensionempleado_valor + saludempleado_valor"/>
+                                            <tr>
+                                                <td>Descuentos</td>
+                                                <t t-set="descuentos_nombre" t-value=""></t>
+                                                    <t t-set="descuentos_valor" t-value="0"></t>
+                                                    <t t-foreach="doc.line_ids.filtered(lambda x: x.code == 'DESCUENTOS')" t-as="line_ids">
+                                                        <t t-set="descuentos_nombre" t-value="line_ids.name"/>
+                                                        <t t-set="descuentos_valor" t-value="line_ids.total"/>
+                                                    </t>
+                                                    <t t-if="pensionempleado_valor != 0">
+
+
+
+                                                        <td class="text-right"><span t-esc="descuentos_valor" t-options='{"widget": "monetary", "display_currency": doc.company_id.currency_id}'/>
+                                                        </td>
+                                                        <td></td>
+                                                        <td class="text-center" t-foreach="doc.worked_days_line_ids.filtered(lambda x: x.work_entry_type_id.name == 'Total Días')" t-as="worked_days">
+                                                            <span t-field="worked_days.number_of_days"/>
+                                                        </td>
+                                                        <td class="text-right"> </td>
+
+                                                        <td class="text-right"> </td>
+
+                                                    </t>
+                                                    <t t-else="">
+                                                    </t>
+
+                                            </tr>
+                                            <t t-set="t_deducciones" t-value="pensionempleado_valor + saludempleado_valor + descuentos_valor"/>
                                             <tr>
                                                 <td><strong><b>TOTAL DEDUCCIONES</b></strong></td>
                                                 <td style="border-top: 1px solid black" class="text-right"><span t-esc="t_deducciones" t-options='{"widget": "monetary", "display_currency": doc.company_id.currency_id}'/></td>
