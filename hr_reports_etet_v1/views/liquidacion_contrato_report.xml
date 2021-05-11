@@ -23,11 +23,10 @@
 
                                     <td class="text-center" style="margin-top:-25px; width:35%" add="small">
                                         <div><b><span style="font-size:20px" t-field="doc.company_id.name"/></b></div>
-                                        <div>N.I.T<span t-field="doc.company_id.vat"/></div>
+                                        <div>N.I.T <span t-field="doc.company_id.vat"/></div>
                                         <div><span t-field="doc.company_id.street"/></div>
                                         <div>
                                             <span t-field="doc.company_id.city"/>
-                                            <span t-field="doc.company_id.state_id"/>
                                             <span t-field="doc.company_id.zip"/>
                                         </div>
 
@@ -44,8 +43,8 @@
                             <tr>
                                 <td style="width:60%">
                                     <table style="width:100%; margin-left:5px; font-size:12px; margin-top:15px">
-                                        <td style="width:37%"><strong>Ciudad y Fecha : </strong></td>
-                                        <td style="width:63%"><span style="font-size:12px" t-field="doc.company_id.city"/>, <span style="font-size:12px" t-field="doc.contract_id.date_start"/></td>
+                                        <td style="width:40%"><strong>Ciudad y Fecha : </strong></td>
+                                        <td style="width:60%"><span style="font-size:12px" t-field="doc.company_id.city"/>, <span style="font-size:12px" t-field="doc.contract_id.date_end"/></td>
                                     </table>
                                 </td>
                                 <td style="width:40%">
@@ -558,9 +557,9 @@
                                             por trabajos nocturnos, descansos remunerados, cesantía, intereses de cesantía,vacaciones, y en general, todo concepto relaci onado con salarios,
                                             descansos, prestaciones o indemnizaciones de toda especie y en general, por toda acreencia laboral, que tenga por causa el co ntrato de trabajo que
                                             ha quedado extinguido.</p>
-                                            <p style="font-size:11px">2) El trabajador acepta expresamente que el tiempo transcurrido entre la terminaci ón del contrato y la fecha de pago de esta liquidación, está
+                                            <p style="font-size:11px" class="text-justify">2) El trabajador acepta expresamente que el tiempo transcurrido entre la terminaci ón del contrato y la fecha de pago de esta liquidación, está
                                             justificado.</p>
-                                            <p style="font-size:11px">3) Que no obstante la anterior declaración, se hace constar por las partes, que con el pago de la suma de dinero a que hace r eferencia la anterior
+                                            <p style="font-size:11px" class="text-justify">3) Que no obstante la anterior declaración, se hace constar por las partes, que con el pago de la suma de dinero a que hace r eferencia la anterior
                                             liquidación, queda transada cualquier diferencia relativa al contrato de trabajo que ha quedado terminado, pues ha sido de co mún ánimo transar
                                             definitiva-mente, como en efecto se transa, todo reclamo pasado, presente o futuro que tenga por causa el mencionado contrato.Por consig uiente ésta
                                             transaccion tiene por efecto la extinción de las obligaciones provenientes de la relación laboral que existió entre el Patron o y el Trabajador quienes</p></tr>
@@ -569,9 +568,9 @@
                                  <table style="width:100%" add="small">
                                     <tr>
                                         <td class="text-center" style="width:100%; border-top: 1px solid black; width:28%"><b><span t-field="doc.company_id.name"/><p>NIT: <span t-field="doc.company_id.vat"/></p></b></td>
-                                        <td></td>
+                                        <td style="color:white">   ,</td>
                                         <td class="text-center" style="width:100%; border-top: 1px solid black; width:28%"><b><span t-field="doc.employee_id"/><p><span t-field="doc.employee_id.identification_id"/></p></b></td>
-                                        <td></td>
+                                        <td style="color:white">   ,</td>
                                         <td class="text-center" style="width:100%; border-top: 1px solid black; width:28%"><b>TESTIGO<p>C.C. No.</p></b></td></tr>
                                 </table>
                     </div>
