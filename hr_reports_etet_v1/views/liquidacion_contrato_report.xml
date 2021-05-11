@@ -37,13 +37,23 @@
                         </table>
                         <table style="width:100%">
                             <tr>
-                                <td style=" font-size:20px" class="text-center"><b>LIQUIDACIÓN CONTRATO DE TRABAJO</b></td>
+                                <td style="font-size:20px" class="text-center"><b>LIQUIDACIÓN CONTRATO DE TRABAJO</b></td>
                             </tr>
                         </table>
-                        <table style="width:100%; margin-top:15px">
+                        <table style="width:100%">
                             <tr>
-                                <td style="width:25%; font-size:12px; padding-left:7px"><strong>Ciudad y Fecha : </strong></td>
-                                <td><span style="font-size:12px" t-field="doc.company_id.city"/>, <span style="font-size:12px" t-field="doc.contract_id.date_start"/></td>
+                                <td style="width:60%">
+                                    <table style="width:100%; margin-left:5px; font-size:12px; margin-top:15px">
+                                        <td style="width:37%"><strong>Ciudad y Fecha : </strong></td>
+                                        <td style="width:63%"><span style="font-size:12px" t-field="doc.company_id.city"/>, <span style="font-size:12px" t-field="doc.contract_id.date_start"/></td>
+                                    </table>
+                                </td>
+                                <td style="width:40%">
+                                    <table style="width:100%; margin-left:5px; font-size:12px; margin-top:15px">
+                                        <td style="width:40%"><strong>Contrato: </strong></td>
+                                        <td style="width:60%"> <span style="font-size:12px" t-field="doc.contract_id"/></td>
+                                    </table>
+                                </td>
                             </tr>
                         </table>
                         <table style="width:100%; border-bottom: 1px solid black">
